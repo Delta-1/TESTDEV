@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Printfy - Gerador de Etiquetas Térmicas</title>
+  <!-- Tailwind CSS para Estilização Rápida e Moderna -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts para Tipografia Limpa -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Ocultar barra de rolagem padrão para visual mais nativo no celular */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #10b981;
+    }
+
+    /* Estilos estritos para impressão térmica */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #print-area-wrapper, #print-area-wrapper * {
+        visibility: visible !important;
+      }
+      #print-area-wrapper {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+      }
+      @page {
+        size: auto;
+        margin: 0mm;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 font-sans flex flex-col pb-20 md:pb-0 overflow-x-hidden">
+
+  <!-- --- Header para Desktop --- -->
+  <header class="no-print hidden md:block bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 px-6 py-4">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <!-- Lado Esquerdo: Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/10">
+          <svg class="w-5 h-5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Printfy</h1>
+          <p class="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase">Etiquetas NaviVendas</p>
+        </div>
+      </div>
+
+      <!-- Abas de Navegação Desktop (Centralizadas) -->
+      <nav class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 absolute left-1/2 transform -translate-x-1/2">
+        <button onclick="switchTab('main')" id="tab-main-btn" class="nav-btn px-4 py-2 text-xs font-semibold rounded-lg transition-all bg-slate-850 text-white flex items-center gap-2">
+          Painel & Fila
+          <span class="queue-badge bg-emerald-500 text-slate-950 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">0</span>
+        </button>
+        <button onclick="switchTab('inventory')" id="tab-inventory-btn" class="nav-btn px-4 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center gap-2">
+          Estoque
+          <span class="inventory-count bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+        </button>
+      </nav>
+
+      <!-- Lado Direito: Botão de Configurações (Engrenagem) -->
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSettingsDrawer()" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition-all text-slate-300 hover:text-white" title="Configurações e Layout">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- --- Barra de Navegação Inferior para Celular (Centralizada com Ajustes na Direita) --- -->
+  <nav class="no-print md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800/80 z-40 flex justify-between items-center py-2 px-8 shadow-lg shadow-black/50">
+    <div class="flex justify-center items-center gap-8 mx-auto">
+      <button onclick="switchTab('main')" id="m-tab-main-btn" class="m-nav-btn flex flex-col items-center gap-1 text-emerald-400 transition-all relative">
+        <div class="relative">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <span class="absolute -top-1.5 -right-3 bg-emerald-500 text-slate-950 text-[8px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center queue-badge">0</span>
+        </div>
+        <span class="text-[10px] font-medium">Painel & Fila</span>
+      </button>
+      
+      <button onclick="switchTab('inventory')" id="m-tab-inventory-btn" class="m-nav-btn flex flex-col items-center gap-1 text-slate-400 transition-all">
+        <div class="relative">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <span class="absolute -top-1.5 -right-3 bg-slate-800 text-slate-400 text-[8px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center inventory-count">0</span>
+        </div>
+        <span class="text-[10px] font-medium">Estoque</span>
+      </button>
+    </div>
+
+    <!-- Botão de Configurações no Mobile (Direita) -->
+    <button onclick="toggleSettingsDrawer()" class="flex flex-col items-center gap-1 text-slate-400 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      <span class="text-[10px] font-semibold text-slate-400">Ajustes</span>
+    </button>
+  </nav>
+
+  <!-- --- Área de Conteúdo Geral --- -->
+  <main class="flex-grow max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Lado Esquerdo: Abas de Trabalho -->
+    <div class="lg:col-span-7 flex flex-col gap-5 no-print">
+
+      <!-- Aba 1: Painel Principal (Busca Rápida de Produtos + Fila Ativa no mesmo lugar) -->
+      <section id="tab-main" class="tab-content bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col gap-5">
+        <div>
+          <h2 class="text-lg font-extrabold text-white mb-0.5 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            Pesquisar & Adicionar à Fila
+          </h2>
+          <p class="text-xs text-slate-400">Busque produtos rápidos de seu estoque e adicione na lista de impressão logo abaixo.</p>
+        </div>
+
+        <!-- Barra de Busca Instantânea -->
+        <div class="relative">
+          <input 
+            type="text" 
+            id="main-search-input" 
+            oninput="renderMainSearchSuggestions()" 
+            placeholder="Digite o nome do produto ou código para buscar no estoque..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+          />
+          <svg class="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <!-- Lista de Resultados de Busca Rápida -->
+        <div id="main-suggestions-box" class="bg-slate-950 rounded-xl border border-slate-850 p-2 max-h-48 overflow-y-auto hidden">
+          <!-- Preenchido dinamicamente por JS -->
+        </div>
+
+        <!-- Linha divisória -->
+        <div class="border-t border-slate-800/80 my-1"></div>
+
+        <!-- Seção: Fila de Impressão Direta (Sua lista de trabalho rápida) -->
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <h3 class="text-sm font-bold text-white">Carrinho de Impressão Ativo</h3>
+          </div>
+          <button onclick="clearAllQueue()" class="text-[11px] text-red-400 hover:text-red-300 font-bold">
+            Limpar Lista
+          </button>
+        </div>
+
+        <!-- Lista de Itens na Fila de Trabalho -->
+        <div id="main-queue-container" class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+          <!-- Preenchido via JS -->
+        </div>
+
+        <!-- Estado vazio da Fila de Trabalho -->
+        <div id="main-queue-empty" class="hidden text-center py-8 text-slate-500 bg-slate-950/20 rounded-xl border border-dashed border-slate-850">
+          <svg class="w-8 h-8 mx-auto opacity-30 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <p class="text-xs font-semibold">Sua lista está vazia</p>
+          <p class="text-[10px] text-slate-600 mt-0.5">Use o campo de pesquisa acima para adicionar itens para imprimir.</p>
+        </div>
+      </section>
+
+      <!-- Aba 2: Estoque Geral (Cadastro, Edição, Importação e Exclusão) -->
+      <section id="tab-inventory" class="tab-content hidden bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col gap-4">
+        <div class="flex justify-between items-center flex-wrap gap-2">
+          <div>
+            <h2 class="text-lg font-extrabold text-white">Cadastro & Estoque Completo</h2>
+            <p class="text-xs text-slate-400">Gerencie todos os produtos do sistema. Edite valores ou elimine itens permanentes.</p>
+          </div>
+          
+          <button onclick="openProductModal('add')" class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            Criar Manual
+          </button>
+        </div>
+
+        <!-- Bloco para Importar Arquivo TXT / CSV Externo -->
+        <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-slate-800/80 flex items-center justify-center text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-slate-200 block">Importar de Arquivo do NaviVendas</span>
+              <p class="text-[10px] text-slate-500">Aceita formatos de texto TXT ou tabelas CSV</p>
+            </div>
+          </div>
+          <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 transition-colors rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 cursor-pointer">
+            Carregar Arquivo
+            <input type="file" accept=".txt,.csv" onchange="handleFileSelect(event)" class="hidden" />
+          </label>
+        </div>
+
+        <!-- Campo de Pesquisa Geral de Estoque -->
+        <div class="relative">
+          <input 
+            type="text" 
+            id="inventory-search-input" 
+            oninput="renderInventoryTable()" 
+            placeholder="Filtrar por nome ou código..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-9 text-xs text-slate-100 focus:outline-none focus:border-emerald-500 transition-colors"
+          />
+          <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <!-- Tabela Geral de Itens -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-[400px] overflow-y-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-950 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                <th class="p-3 border-b border-slate-800">Código</th>
+                <th class="p-3 border-b border-slate-800">Produto</th>
+                <th class="p-3 border-b border-slate-800 text-right">Preço</th>
+                <th class="p-3 border-b border-slate-800 text-center w-24">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table-body" class="divide-y divide-slate-800/40 text-xs">
+              <!-- Preenchido dinamicamente por JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Lado Direito: Previewer Dinâmico de Etiquetas (Sempre visível no Desktop) -->
+    <div class="lg:col-span-5 bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col gap-4 sticky top-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-base font-extrabold text-white">Visualização das Etiquetas</h2>
+          <p class="text-[11px] text-slate-400">Verifique antes de enviar à impressora térmica.</p>
+        </div>
+        <button onclick="triggerPrintNow()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-slate-950 text-xs font-extrabold rounded-xl transition-all shadow-lg flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Imprimir Todas
+        </button>
+      </div>
+
+      <!-- Wrapper das etiquetas de simulação física -->
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex justify-center overflow-auto min-h-[300px] max-h-[500px]">
+        <div id="print-area-wrapper" class="origin-top scale-90 sm:scale-100 transition-transform">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- --- PAINEL LATERAL DE CONFIGURAÇÕES (DRAWER) --- -->
+  <div id="settings-drawer" class="no-print fixed inset-y-0 right-0 max-w-md w-full bg-slate-900 border-l border-slate-800/80 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out">
+    <div class="h-full flex flex-col justify-between">
+      
+      <!-- Cabeçalho do Drawer -->
+      <div class="p-5 border-b border-slate-800 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="text-base font-bold text-white">Configurações & Margens</span>
+        </div>
+        <button onclick="toggleSettingsDrawer()" class="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Conteúdo com Scroll -->
+      <div class="flex-grow overflow-y-auto p-5 flex flex-col gap-6">
+        
+        <!-- Bloco 1: Google Planilha -->
+        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 flex flex-col gap-3">
+          <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Integração Google Planilhas</h3>
+          
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] text-slate-400">URL de Compartilhamento Livre</label>
+            <input 
+              type="url" 
+              id="sheet-url-input" 
+              placeholder="https://docs.google.com/spreadsheets/d/.../edit" 
+              class="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-2.5 text-xs text-slate-100 placeholder-slate-650 focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+          <button onclick="saveAndSyncUrl()" class="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-lg text-xs transition-colors">
+            Vincular & Sincronizar
+          </button>
+          
+          <div class="flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800 pt-2 mt-1">
+            <span>Status: <strong id="sync-status" class="text-red-400">Desconectado</strong></span>
+            <span>Atualizado: <strong id="sync-time">Nunca</strong></span>
+          </div>
+        </div>
+
+        <!-- Bloco 2: Configuração de Margens de Rolo -->
+        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 flex flex-col gap-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Ajustar Layout & Margens</h3>
+            <span class="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded">Milímetros (mm)</span>
+          </div>
+
+          <!-- Controle de Colunas -->
+          <div>
+            <div class="flex justify-between text-xs text-slate-300 mb-1">
+              <span>Colunas no Rolo:</span>
+              <span class="font-bold text-white" id="val-cols">3</span>
+            </div>
+            <input type="range" id="input-cols" min="1" max="5" value="3" oninput="updateLayoutParam('cols', this.value)" class="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg" />
+          </div>
+
+          <!-- Medidas Físicas -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">Largura Rótulo (mm)</label>
+              <input type="number" id="input-widthMm" value="38" oninput="updateLayoutParam('widthMm', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 text-xs text-slate-200" />
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">Altura Rótulo (mm)</label>
+              <input type="number" id="input-heightMm" value="25" oninput="updateLayoutParam('heightMm', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 text-xs text-slate-200" />
+            </div>
+          </div>
+
+          <!-- Gaps -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">Espaço Horizontal (mm)</label>
+              <input type="number" step="0.5" id="input-gapHorizontalMm" value="2" oninput="updateLayoutParam('gapHorizontalMm', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 text-xs text-slate-200" />
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">Espaço Vertical (mm)</label>
+              <input type="number" step="0.5" id="input-gapVerticalMm" value="2" oninput="updateLayoutParam('gapVerticalMm', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2.5 text-xs text-slate-200" />
+            </div>
+          </div>
+
+          <!-- Margem Esquerda de Alinhamento -->
+          <div>
+            <div class="flex justify-between text-xs text-slate-300 mb-1">
+              <span>Margem Esquerda do Rolo:</span>
+              <span class="font-bold text-white"><span id="val-paddingLeftMm">1</span> mm</span>
+            </div>
+            <input type="range" id="input-paddingLeftMm" min="0" max="15" value="1" oninput="updateLayoutParam('paddingLeftMm', this.value)" class="w-full accent-emerald-500 h-1 bg-slate-800" />
+          </div>
+
+          <!-- Opções Visuais Checkboxes -->
+          <div class="grid grid-cols-2 gap-2 text-xs text-slate-300 border-t border-slate-800/80 pt-3">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="check-showName" checked onchange="updateLayoutParam('showName', this.checked)" class="rounded text-emerald-500 bg-slate-900 border-slate-700" />
+              Nome
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="check-showPrice" checked onchange="updateLayoutParam('showPrice', this.checked)" class="rounded text-emerald-500 bg-slate-900 border-slate-700" />
+              Preço
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="check-showCode" checked onchange="updateLayoutParam('showCode', this.checked)" class="rounded text-emerald-500 bg-slate-900 border-slate-700" />
+              Cód. Numérico
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="check-showBarcode" checked onchange="updateLayoutParam('showBarcode', this.checked)" class="rounded text-emerald-500 bg-slate-900 border-slate-700" />
+              Cód. Barras
+            </label>
+          </div>
+        </div>
+
+        <!-- Bloco 3: Backup de Estoque Local -->
+        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 flex flex-col gap-2.5">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Backups Locais</h3>
+          <p class="text-[10px] text-slate-500">Baixe todo o estoque cadastrado em arquivos de segurança para reimportar quando quiser.</p>
+          <div class="grid grid-cols-2 gap-2 mt-1">
+            <button onclick="exportToTXT()" class="py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs font-bold text-slate-300 transition-colors">
+              Exportar TXT
+            </button>
+            <button onclick="exportToCSV()" class="py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs font-bold text-slate-300 transition-colors">
+              Exportar CSV
+            </button>
+          </div>
+          <button onclick="clearEntireDatabase()" class="w-full py-2 bg-red-950 hover:bg-red-900 text-red-200 text-xs font-bold rounded-lg border border-red-800/60 mt-1 transition-colors">
+            Limpar Todo Estoque
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Rodapé do Drawer -->
+      <div class="p-5 border-t border-slate-800 bg-slate-950/40 text-center text-[10px] text-slate-500">
+        Desenvolvido para Impressão Térmica Dinâmica.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- --- NOTIFICAÇÕES TOAST (SUBSTITUTO DOS ALERTS DO NAVEGADOR) --- -->
+  <div id="toast-container" class="no-print fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- --- Modal para Adicionar / Editar Produto Manualmente --- -->
+  <div id="product-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 max-w-sm w-full p-5 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="modal-title" class="text-sm font-extrabold text-white">Adicionar Produto</h3>
+        <button onclick="closeProductModal()" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Campo de controle invisível para identificar se está editando -->
+      <input type="hidden" id="m-prod-original-code" />
+
+      <div class="flex flex-col gap-3 text-xs">
+        <div>
+          <label class="text-slate-400 block mb-1 font-semibold">Código de Barras (EAN / Interno)</label>
+          <input type="text" id="m-prod-code" placeholder="Ex: 011000340" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 transition-colors text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1 font-semibold">Nome do Produto</label>
+          <input type="text" id="m-prod-name" placeholder="Ex: Gel Sensual Deslizante" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 transition-colors text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1 font-semibold">Preço Unitário (R$)</label>
+          <input type="number" step="0.01" id="m-prod-price" placeholder="0.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 transition-colors text-white" />
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-end mt-2">
+        <button onclick="closeProductModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold rounded-xl text-xs">
+          Cancelar
+        </button>
+        <button onclick="saveManualProduct()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl text-xs">
+          Gravar Produto
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- Logica em Vanilla Javascript --- -->
+  <script>
+    // --- ESTADO GLOBAL ---
+    let inventory = [];
+    let printQueue = {}; // Armazena { code: quantidade }
+    
+    let layout = {
+      cols: 3,
+      widthMm: 38,
+      heightMm: 25,
+      gapHorizontalMm: 2,
+      gapVerticalMm: 2,
+      paddingLeftMm: 1,
+      paddingTopMm: 1,
+      fontSizeTitle: 10,
+      fontSizePrice: 13,
+      showName: true,
+      showPrice: true,
+      showCode: true,
+      showBarcode: true
+    };
+
+    // --- CARREGAMENTO INICIAL ---
+    window.onload = function() {
+      // Restaurar estoque do LocalStorage
+      const savedInventory = localStorage.getItem('printfy_v2_inventory');
+      if (savedInventory) {
+        try {
+          inventory = JSON.parse(savedInventory);
+        } catch(e) {
+          loadDemoInventory();
+        }
+      } else {
+        loadDemoInventory();
+      }
+
+      // Restaurar fila de impressão do LocalStorage
+      const savedQueue = localStorage.getItem('printfy_v2_queue');
+      if (savedQueue) {
+        try {
+          printQueue = JSON.parse(savedQueue);
+        } catch(e) {}
+      }
+
+      // Restaurar configurações de Layout
+      const savedLayout = localStorage.getItem('printfy_v2_layout');
+      if (savedLayout) {
+        try {
+          layout = JSON.parse(savedLayout);
+          syncSettingsInputs();
+        } catch(e) {}
+      }
+
+      // Restaurar dados do Google Planilhas
+      const savedUrl = localStorage.getItem('printfy_v2_sheet_url');
+      if (savedUrl) {
+        document.getElementById('sheet-url-input').value = savedUrl;
+        silentSyncWithSheets(savedUrl);
+      }
+
+      updateInventoryBadges();
+      renderMainSearchSuggestions();
+      renderQueueList();
+      renderInventoryTable();
+      renderLabelsPreview();
+    };
+
+    // --- CARREGAR PRODUTOS DE DEMONSTRAÇÃO ---
+    function loadDemoInventory() {
+      inventory = [
+        { code: '011000340', name: 'Energético Mo Molhada', price: 48.00 },
+        { code: '011000058', name: 'Somos 2 Gel de Massagem', price: 195.00 },
+        { code: '011000407', name: 'Calda Picante frutas vermelhas', price: 65.00 },
+        { code: '011000248', name: 'Mousse em Gel Ousada', price: 85.00 },
+        { code: '011000139', name: 'Sabonete Intimo Molhada', price: 58.00 }
+      ];
+      saveLocalInventory();
+    }
+
+    // --- PERSISTÊNCIA LOCAL ---
+    function saveLocalInventory() {
+      localStorage.setItem('printfy_v2_inventory', JSON.stringify(inventory));
+      updateInventoryBadges();
+    }
+
+    function saveLocalQueue() {
+      localStorage.setItem('printfy_v2_queue', JSON.stringify(printQueue));
+      updateInventoryBadges();
+    }
+
+    function saveLocalLayout() {
+      localStorage.setItem('printfy_v2_layout', JSON.stringify(layout));
+    }
+
+    function updateInventoryBadges() {
+      // Contagem de itens no estoque geral
+      const counts = document.querySelectorAll('.inventory-count');
+      counts.forEach(el => el.textContent = inventory.length);
+
+      // Contagem de itens selecionados para imprimir (Quantidade somada ou tipos de itens)
+      let sumOfLabels = 0;
+      Object.values(printQueue).forEach(qty => {
+        sumOfLabels += qty;
+      });
+      const queueBadges = document.querySelectorAll('.queue-badge');
+      queueBadges.forEach(el => {
+        el.textContent = sumOfLabels;
+        if (sumOfLabels > 0) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+    }
+
+    // Sincronizar inputs de configurações físicas com o estado de layout carregado
+    function syncSettingsInputs() {
+      document.getElementById('input-cols').value = layout.cols;
+      document.getElementById('input-widthMm').value = layout.widthMm;
+      document.getElementById('input-heightMm').value = layout.heightMm;
+      document.getElementById('input-gapHorizontalMm').value = layout.gapHorizontalMm;
+      document.getElementById('input-gapVerticalMm').value = layout.gapVerticalMm;
+      document.getElementById('input-paddingLeftMm').value = layout.paddingLeftMm;
+      
+      document.getElementById('check-showName').checked = layout.showName;
+      document.getElementById('check-showPrice').checked = layout.showPrice;
+      document.getElementById('check-showCode').checked = layout.showCode;
+      document.getElementById('check-showBarcode').checked = layout.showBarcode;
+      
+      document.getElementById('input-fontSizeTitle').value = layout.fontSizeTitle;
+      document.getElementById('input-fontSizePrice').value = layout.fontSizePrice;
+
+      // Atualizar as labels de exibição numérica do lado
+      document.getElementById('val-cols').textContent = layout.cols;
+      document.getElementById('val-paddingLeftMm').textContent = layout.paddingLeftMm;
+    }
+
+    // --- TOAST NOTIFICATIONS (Substitui os alerts do Sandbox) ---
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const colors = {
+        success: 'bg-emerald-500 text-slate-950',
+        error: 'bg-red-500 text-white',
+        info: 'bg-slate-800 text-slate-100 border border-slate-700'
+      };
+
+      toast.className = `flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto ${colors[type]}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      
+      container.appendChild(toast);
+      
+      // Animar entrada
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      // Remover após tempo
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // --- NAVEGAÇÃO DE ABAS ADAPTATIVA ---
+    function switchTab(tabId) {
+      // Ocultar todas as abas
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      // Mostrar aba ativa
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+      // Atualizar botões Desktop
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-slate-850', 'text-white');
+        btn.classList.add('text-slate-400', 'hover:text-white');
+      });
+      const activeDesktopBtn = document.getElementById(`tab-${tabId}-btn`);
+      if (activeDesktopBtn) {
+        activeDesktopBtn.classList.remove('text-slate-400', 'hover:text-white');
+        activeDesktopBtn.classList.add('bg-slate-850', 'text-white');
+      }
+
+      // Atualizar botões Mobile
+      document.querySelectorAll('.m-nav-btn').forEach(btn => {
+        btn.classList.remove('text-emerald-400');
+        btn.classList.add('text-slate-400');
+      });
+      const activeMobileBtn = document.getElementById(`m-tab-${tabId}-btn`);
+      if (activeMobileBtn) {
+        activeMobileBtn.classList.remove('text-slate-400');
+        activeMobileBtn.classList.add('text-emerald-400');
+      }
+    }
+
+    // --- GERENCIAMENTO DO DRAWER DE CONFIGURAÇÕES (LADO DIREITO) ---
+    function toggleSettingsDrawer() {
+      const drawer = document.getElementById('settings-drawer');
+      if (drawer.classList.contains('translate-x-full')) {
+        drawer.classList.remove('translate-x-full');
+      } else {
+        drawer.classList.add('translate-x-full');
+      }
+    }
+
+    // --- PARSER DE IMPORTAÇÃO (TXT NaVendas & CSV) ---
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        if (file.name.endsWith('.csv')) {
+          parseCSVText(text);
+        } else {
+          parseNaVendasTXT(text);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Processar o TXT do NaVendas
+    function parseNaVendasTXT(text) {
+      const lines = text.split(/\r?\n/);
+      let added = 0;
+      let updated = 0;
+
+      lines.forEach(line => {
+        if (line.trim().length < 20) return;
+        try {
+          const code = line.substring(0, 9).trim();
+          const rawPrice = line.substring(9, 19).trim();
+          const name = line.substring(19, 69).trim();
+          const price = parseFloat(rawPrice) / 100000;
+
+          if (!code || !name) return;
+
+          const existingIndex = inventory.findIndex(p => p.code === code);
+          if (existingIndex >= 0) {
+            inventory[existingIndex] = { code, name, price: isNaN(price) ? 0 : price };
+            updated++;
+          } else {
+            inventory.push({ code, name, price: isNaN(price) ? 0 : price });
+            added++;
+          }
+        } catch(err) {}
+      });
+
+      saveAndNotify(added, updated, 'TXT NaviVendas');
+    }
+
+    // Processar Planilha CSV
+    function parseCSVText(text) {
+      const lines = text.split(/\r?\n/);
+      let added = 0;
+      let updated = 0;
+
+      lines.forEach((line, index) => {
+        // Ignorar cabeçalho se houver
+        if (index === 0 && (line.toLowerCase().includes('codigo') || line.toLowerCase().includes('nome'))) return;
+
+        const cols = line.split(/[,;]/);
+        if (cols.length < 2) return;
+
+        const code = cols[0].replace(/"/g, '').trim();
+        const name = cols[1].replace(/"/g, '').trim();
+        const price = cols[2] ? parseFloat(cols[2].replace(/"/g, '').replace(',', '.').trim()) : 0;
+
+        if (!code || !name) return;
+
+        const existingIndex = inventory.findIndex(p => p.code === code);
+        if (existingIndex >= 0) {
+          inventory[existingIndex] = { code, name, price: isNaN(price) ? 0 : price };
+          updated++;
+        } else {
+          inventory.push({ code, name, price: isNaN(price) ? 0 : price });
+          added++;
+        }
+      });
+
+      saveAndNotify(added, updated, 'Planilha CSV');
+    }
+
+    function saveAndNotify(added, updated, format) {
+      saveLocalInventory();
+      renderMainSearchSuggestions();
+      renderInventoryTable();
+      renderLabelsPreview();
+      showToast(`Carregado: ${added} novos cadastrados e ${updated} atualizados.`);
+    }
+
+    // --- ABA 1: AUTOCOMPLETAR / BUSCA RÁPIDA DE PRODUTOS ---
+    function renderMainSearchSuggestions() {
+      const query = document.getElementById('main-search-input').value.toLowerCase().trim();
+      const sBox = document.getElementById('main-suggestions-box');
+      sBox.innerHTML = '';
+
+      // Se a busca estiver vazia, mostramos os últimos produtos cadastrados como atalhos sugeridos
+      let listToShow = [];
+      if (!query) {
+        listToShow = inventory.slice(-5).reverse(); // Mostrar últimos 5 itens
+      } else {
+        listToShow = inventory.filter(p => 
+          p.name.toLowerCase().includes(query) || 
+          p.code.toLowerCase().includes(query)
+        ).slice(0, 8); // Limitar a 8 resultados
+      }
+
+      if (listToShow.length === 0) {
+        sBox.innerHTML = `<div class="p-3 text-center text-xs text-slate-500">Nenhum produto correspondente no estoque.</div>`;
+        sBox.classList.remove('hidden');
+        return;
+      }
+
+      sBox.classList.remove('hidden');
+
+      listToShow.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center p-2 hover:bg-slate-900 rounded-lg transition-colors group cursor-pointer';
+        row.onclick = () => {
+          addToQueue(p.code);
+          document.getElementById('main-search-input').value = '';
+          renderMainSearchSuggestions();
+        };
+
+        row.innerHTML = `
+          <div class="flex-grow pr-3">
+            <span class="text-xs font-semibold text-white group-hover:text-emerald-400 block line-clamp-1 leading-tight">${p.name}</span>
+            <span class="text-[10px] font-mono text-slate-500">${p.code} • R$ ${p.price.toFixed(2)}</span>
+          </div>
+          <button class="p-1 px-2.5 bg-slate-900 group-hover:bg-emerald-500 group-hover:text-slate-950 text-slate-400 text-[10px] font-extrabold rounded-lg transition-all flex items-center gap-1">
+            + Adicionar
+          </button>
+        `;
+        sBox.appendChild(row);
+      });
+    }
+
+    // --- GERENCIAMENTO DE FILA DE IMPRESSÃO (CARRINHO DE VENDAS) ---
+    function addToQueue(code) {
+      const qty = printQueue[code] || 0;
+      printQueue[code] = qty + 1;
+      
+      saveLocalQueue();
+      renderQueueList();
+      renderLabelsPreview();
+      showToast('Adicionado ao carrinho de impressão!');
+    }
+
+    function incrementQueue(code) {
+      const qty = printQueue[code] || 0;
+      printQueue[code] = qty + 1;
+      saveLocalQueue();
+      renderQueueList();
+      renderLabelsPreview();
+    }
+
+    function decrementQueue(code) {
+      const qty = printQueue[code] || 0;
+      if (qty <= 1) {
+        delete printQueue[code];
+      } else {
+        printQueue[code] = qty - 1;
+      }
+      saveLocalQueue();
+      renderQueueList();
+      renderLabelsPreview();
+    }
+
+    function removeFromQueue(code) {
+      delete printQueue[code];
+      saveLocalQueue();
+      renderQueueList();
+      renderLabelsPreview();
+      showToast('Item removido do carrinho.', 'info');
+    }
+
+    function printSingleLabel(code) {
+      const originalQueue = { ...printQueue };
+      printQueue = { [code]: originalQueue[code] || 1 };
+      renderLabelsPreview();
+      
+      setTimeout(() => {
+        window.print();
+        printQueue = originalQueue;
+        renderLabelsPreview();
+      }, 50);
+    }
+
+    function clearAllQueue() {
+      printQueue = {};
+      saveLocalQueue();
+      renderQueueList();
+      renderLabelsPreview();
+      showToast('Todo o carrinho de impressão foi limpo.', 'info');
+    }
+
+    // Renderizar a fila de impressão no Painel Principal (Aba 1)
+    function renderQueueList() {
+      const container = document.getElementById('main-queue-container');
+      const emptyState = document.getElementById('main-queue-empty');
+      container.innerHTML = '';
+
+      const queueKeys = Object.keys(printQueue);
+
+      if (queueKeys.length === 0) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+
+      queueKeys.forEach(code => {
+        const prod = inventory.find(p => p.code === code) || { code, name: 'Produto Desconhecido', price: 0 };
+        const qty = printQueue[code];
+
+        const item = document.createElement('div');
+        item.className = 'bg-slate-950 p-2.5 rounded-xl border border-slate-850 flex flex-col sm:flex-row justify-between items-center gap-2 hover:border-slate-800 transition-colors';
+        item.innerHTML = `
+          <div class="flex-grow text-center sm:text-left min-w-0 pr-2">
+            <h4 class="font-bold text-slate-100 text-xs line-clamp-1 uppercase leading-tight">${prod.name}</h4>
+            <div class="flex items-center justify-center sm:justify-start gap-2 mt-1">
+              <span class="font-mono text-[9px] text-slate-500">${prod.code}</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-900"></span>
+              <span class="text-xs font-bold text-emerald-400">R$ ${prod.price.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <!-- Ações e Controles -->
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <!-- Controle de Quantidade -->
+            <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg">
+              <button onclick="decrementQueue('${prod.code}')" class="px-2 py-0.5 text-slate-400 hover:text-white font-bold text-xs">-</button>
+              <span class="px-2 font-bold text-xs text-white text-[11px]">${qty}</span>
+              <button onclick="incrementQueue('${prod.code}')" class="px-2 py-0.5 text-slate-400 hover:text-white font-bold text-xs">+</button>
+            </div>
+
+            <!-- Botão Imprimir Este -->
+            <button onclick="printSingleLabel('${prod.code}')" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500 hover:text-slate-950 transition-all border border-emerald-500/20 rounded-lg text-[9px] font-extrabold text-emerald-400">
+              Imprimir
+            </button>
+
+            <!-- Botão Excluir -->
+            <button onclick="removeFromQueue('${prod.code}')" class="p-1 text-slate-500 hover:text-red-400 rounded hover:bg-red-500/10">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+
+    // --- ABA 2: RENDERIZAR TABELA DO ESTOQUE GERAL (COM BOTÕES DE EDITAR/EXCLUIR) ---
+    function renderInventoryTable() {
+      const query = document.getElementById('inventory-search-input').value.toLowerCase().trim();
+      const tbody = document.getElementById('inventory-table-body');
+      tbody.innerHTML = '';
+
+      const filtered = inventory.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        p.code.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colSpan="4" class="p-6 text-center text-slate-500">Nenhum produto cadastrado com esse termo.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/20';
+        tr.innerHTML = `
+          <td class="p-3 font-mono text-[11px] text-slate-400">${p.code}</td>
+          <td class="p-3 font-semibold text-white">${p.name}</td>
+          <td class="p-3 text-right text-emerald-400 font-bold">R$ ${p.price.toFixed(2)}</td>
+          <td class="p-3 flex justify-center gap-1.5">
+            <!-- Botão Editar -->
+            <button onclick="openProductModal('edit', '${p.code}')" class="p-1.5 text-slate-400 hover:text-emerald-400 rounded-lg hover:bg-slate-800 transition-colors" title="Editar Produto">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+            <!-- Botão Excluir -->
+            <button onclick="deleteProductFromInventory('${p.code}')" class="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800 transition-colors" title="Excluir do Estoque">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function deleteProductFromInventory(code) {
+      if (confirm('Deseja excluir permanentemente este produto do estoque?')) {
+        inventory = inventory.filter(p => p.code !== code);
+        delete printQueue[code];
+        
+        saveLocalInventory();
+        saveLocalQueue();
+        renderMainSearchSuggestions();
+        renderQueueList();
+        renderInventoryTable();
+        renderLabelsPreview();
+        showToast('Produto excluído com sucesso.', 'info');
+      }
+    }
+
+    // --- PARÂMETROS DE MARGENS E LAYOUT ---
+    function updateLayoutParam(key, value) {
+      if (key === 'showName' || key === 'showPrice' || key === 'showCode' || key === 'showBarcode') {
+        layout[key] = value;
+      } else {
+        layout[key] = parseFloat(value) || 0;
+      }
+
+      // Atualizar valores de visualização numérica
+      const valLabel = document.getElementById('val-' + key);
+      if (valLabel) valLabel.textContent = value;
+
+      saveLocalLayout();
+      renderLabelsPreview();
+    }
+
+    // --- AUXILIAR: GERAÇÃO DE CÓDIGO DE BARRAS LEVE (SVG) ---
+    function generateBarcodeSVG(code) {
+      const codeString = code.toString();
+      let pattern = "";
+      
+      for (let i = 0; i < codeString.length; i++) {
+        const digit = parseInt(codeString[i]) || 0;
+        pattern += (digit % 2 === 0) ? "1100101" : "1001101";
+      }
+      pattern += "101"; // Encerramento
+
+      const width = pattern.length * 1.5;
+      const height = 18;
+      
+      let rects = "";
+      for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i] === '1') {
+          rects += `<rect x="${i * 1.5}" y="0" width="1.5" height="${height}" fill="black" />`;
+        }
+      }
+
+      return `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-full" style="max-height: 18px;">
+          ${rects}
+        </svg>
+      `;
+    }
+
+    // --- RENDERIZADOR DAS ETIQUETAS EM TEMPO REAL ---
+    function renderLabelsPreview() {
+      const container = document.getElementById('print-area-wrapper');
+      container.innerHTML = '';
+
+      // Montar a fila física baseada nas quantidades informadas
+      const labelList = [];
+      inventory.forEach(p => {
+        const qty = printQueue[p.code] || 0;
+        for (let i = 0; i < qty; i++) {
+          labelList.push(p);
+        }
+      });
+
+      if (labelList.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 text-slate-500 max-w-xs">
+            <svg class="w-10 h-10 mx-auto opacity-30 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+            </svg>
+            <p class="text-xs font-semibold">Sem Etiquetas Ativas</p>
+            <p class="text-[10px] text-slate-600 mt-0.5">Adicione algum produto ao carrinho no painel principal para ver as folhas.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Estilo de Grade Dinâmico baseado em Milímetros
+      const grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = `repeat(${layout.cols}, ${layout.widthMm}mm)`;
+      grid.style.gap = `${layout.gapVerticalMm}mm ${layout.gapHorizontalMm}mm`;
+      grid.style.paddingLeft = `${layout.paddingLeftMm}mm`;
+      grid.style.paddingTop = `${layout.paddingTopMm}mm`;
+      grid.style.justifyContent = 'start';
+      grid.style.background = '#ffffff';
+
+      labelList.forEach(p => {
+        const label = document.createElement('div');
+        label.className = 'flex flex-col justify-between overflow-hidden text-black bg-white box-border border border-dashed border-slate-200';
+        label.style.width = `${layout.widthMm}mm`;
+        label.style.height = `${layout.heightMm}mm`;
+        label.style.padding = '1.5mm';
+        label.style.fontFamily = 'system-ui, sans-serif';
+
+        // 1. Nome do Produto (Topo)
+        let nameEl = '';
+        if (layout.showName) {
+          nameEl = `
+            <div class="text-center uppercase font-bold tracking-tight line-clamp-2 overflow-hidden" 
+                 style="font-size: ${layout.fontSizeTitle}px; max-height: 2.3em; line-height: 1.1;">
+              ${p.name}
+            </div>
+          `;
+        }
+
+        // 2. Elementos inferiores (Alinhamento solicitado pelo usuário)
+        // Código de barras
+        let barcodeEl = '';
+        if (layout.showBarcode) {
+          barcodeEl = `
+            <div class="w-full flex justify-center items-center overflow-hidden px-1 my-0.5">
+              ${generateBarcodeSVG(p.code)}
+            </div>
+          `;
+        }
+
+        // CÓDIGO DO PRODUTO EMBAIXO DO CÓDIGO DE BARRAS
+        let codeEl = '';
+        if (layout.showCode) {
+          codeEl = `<div class="text-[8px] text-slate-800 font-mono text-center leading-none mt-0.5 mb-1">${p.code}</div>`;
+        }
+
+        // PREÇO EM DESTAQUE NA BASE DA ETIQUETA
+        let priceEl = '';
+        if (layout.showPrice) {
+          priceEl = `<div class="font-extrabold text-center tracking-tight leading-none" style="font-size: ${layout.fontSizePrice}px;">R$ ${p.price.toFixed(2)}</div>`;
+        }
+
+        label.innerHTML = `
+          ${nameEl}
+          <div class="flex flex-col justify-end flex-grow gap-0.5">
+            ${barcodeEl}
+            ${codeEl}
+            ${priceEl}
+          </div>
+        `;
+        grid.appendChild(label);
+      });
+
+      container.appendChild(grid);
+    }
+
+    // --- IMPRESSÃO ---
+    function triggerPrintNow() {
+      window.print();
+    }
+
+    // --- MODAL DE PRODUTO MANUAL (CRIAÇÃO E EDIÇÃO) ---
+    function openProductModal(mode, existingCode = '') {
+      const modal = document.getElementById('product-modal');
+      const title = document.getElementById('modal-title');
+      const origCodeInput = document.getElementById('m-prod-original-code');
+
+      const codeInput = document.getElementById('m-prod-code');
+      const nameInput = document.getElementById('m-prod-name');
+      const priceInput = document.getElementById('m-prod-price');
+
+      modal.classList.remove('hidden');
+
+      if (mode === 'edit') {
+        title.textContent = 'Editar Produto';
+        const p = inventory.find(item => item.code === existingCode);
+        if (p) {
+          origCodeInput.value = p.code;
+          codeInput.value = p.code;
+          nameInput.value = p.name;
+          priceInput.value = p.price;
+        }
+      } else {
+        title.textContent = 'Adicionar Produto';
+        origCodeInput.value = '';
+        codeInput.value = '';
+        nameInput.value = '';
+        priceInput.value = '';
+      }
+    }
+
+    function closeProductModal() {
+      document.getElementById('product-modal').classList.add('hidden');
+    }
+
+    function saveManualProduct() {
+      const origCode = document.getElementById('m-prod-original-code').value;
+      const code = document.getElementById('m-prod-code').value.trim();
+      const name = document.getElementById('m-prod-name').value.trim();
+      const priceVal = document.getElementById('m-prod-price').value;
+      const price = parseFloat(priceVal) || 0;
+
+      if (!code || !name) {
+        showToast('Preencha os dados do produto corretamente.', 'error');
+        return;
+      }
+
+      if (origCode) {
+        // MODO EDIÇÃO: Atualiza o produto existente
+        const idx = inventory.findIndex(item => item.code === origCode);
+        if (idx >= 0) {
+          // Se alterou o código de barras, atualiza também a fila de impressão
+          if (origCode !== code) {
+            const existsNew = inventory.some(item => item.code === code);
+            if (existsNew) {
+              showToast('Este novo código de barras já está em uso por outro produto!', 'error');
+              return;
+            }
+            if (printQueue[origCode]) {
+              printQueue[code] = printQueue[origCode];
+              delete printQueue[origCode];
+            }
+          }
+          inventory[idx] = { code, name, price };
+          showToast('Produto atualizado com sucesso!');
+        }
+      } else {
+        // MODO INSERÇÃO: Adiciona um novo produto
+        const exists = inventory.some(p => p.code === code);
+        if (exists) {
+          showToast('Este código de barras já existe no estoque local!', 'error');
+          return;
+        }
+        inventory.push({ code, name, price });
+        showToast('Produto cadastrado com sucesso!');
+      }
+
+      saveLocalInventory();
+      saveLocalQueue();
+      renderMainSearchSuggestions();
+      renderQueueList();
+      renderInventoryTable();
+      renderLabelsPreview();
+      closeProductModal();
+    }
+
+    // --- SINC INTERNA COM GOOGLE SHEETS ---
+    async function silentSyncWithSheets(url) {
+      try {
+        let sheetId = url;
+        const matches = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        if (matches && matches[1]) {
+          sheetId = matches[1];
+        }
+
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+        const res = await fetch(csvUrl);
+        if (!res.ok) return;
+
+        const csvText = await res.text();
+        const lines = csvText.split(/\r?\n/);
+        
+        let added = 0;
+        let updated = 0;
+
+        lines.forEach((line, index) => {
+          if (index === 0) return; // Ignorar cabeçalho
+
+          const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+          if (cols.length < 2) return;
+
+          const code = cols[0].replace(/"/g, '').trim();
+          const name = cols[1].replace(/"/g, '').trim();
+          const priceStr = cols[2] ? cols[2].replace(/"/g, '').trim() : '0';
+          const price = parseFloat(priceStr.replace(',', '.')) || 0;
+
+          if (!code || !name) return;
+
+          const existingIndex = inventory.findIndex(p => p.code === code);
+          if (existingIndex >= 0) {
+            inventory[existingIndex] = { code, name, price };
+            updated++;
+          } else {
+            inventory.push({ code, name, price });
+            added++;
+          }
+        });
+
+        saveLocalInventory();
+        renderMainSearchSuggestions();
+        renderQueueList();
+        renderInventoryTable();
+        renderLabelsPreview();
+
+        const now = new Date().toLocaleTimeString('pt-BR');
+        document.getElementById('sync-status').textContent = 'Sincronizado';
+        document.getElementById('sync-status').className = 'font-bold text-emerald-400';
+        document.getElementById('sync-time').textContent = now;
+      } catch(e) {}
+    }
+
+    function saveAndSyncUrl() {
+      const url = document.getElementById('sheet-url-input').value.trim();
+      if (!url) {
+        showToast('URL da planilha inválida.', 'error');
+        return;
+      }
+
+      localStorage.setItem('printfy_v2_sheet_url', url);
+      document.getElementById('sync-status').textContent = 'Conectando...';
+      document.getElementById('sync-status').className = 'font-bold text-amber-400';
+      
+      silentSyncWithSheets(url).then(() => {
+        showToast('Google Sheets sincronizado com sucesso!');
+      });
+    }
+
+    // --- EXPORTAR BACKUP ---
+    function exportToTXT() {
+      let txtContent = "";
+      inventory.forEach(p => {
+        const rawCode = p.code.padEnd(9, ' ');
+        const rawPrice = Math.round(p.price * 100000).toString().padStart(10, '0');
+        const rawName = p.name.padEnd(50, ' ');
+        txtContent += `${rawCode}${rawPrice}${rawName}0000000000000000010000                        000000000000000000000000            \n`;
+      });
+      triggerDownload(txtContent, 'printfy_navivendas_backup.txt', 'text/plain');
+    }
+
+    function exportToCSV() {
+      let csvContent = "Codigo,Nome,Preco\n";
+      inventory.forEach(p => {
+        const cleanName = p.name.replace(/"/g, '""');
+        csvContent += `"${p.code}","${cleanName}",${p.price}\n`;
+      });
+      triggerDownload(csvContent, 'printfy_estoque_backup.csv', 'text/csv');
+    }
+
+    function triggerDownload(content, filename, contentType) {
+      const blob = new Blob([content], { type: contentType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Download do backup concluído!');
+    }
+
+    function clearEntireDatabase() {
+      if (confirm('Atenção: Tem certeza que deseja apagar TODOS os produtos cadastrados do estoque?')) {
+        inventory = [];
+        printQueue = {};
+        saveLocalInventory();
+        saveLocalQueue();
+        renderMainSearchSuggestions();
+        renderQueueList();
+        renderInventoryTable();
+        renderLabelsPreview();
+        showToast('Todo o banco de dados local foi limpo.', 'info');
+      }
+    }
+  </script>
+</body>
+</html>
