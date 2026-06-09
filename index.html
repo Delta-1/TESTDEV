@@ -37,6 +37,44 @@
       background: #10b981;
     }
 
+    /* ---- Animações 3D de Transição de Abas ---- */
+    .viewport-3d {
+      perspective: 1200px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tab-content-3d {
+      transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      width: 100%;
+    }
+
+    /* Estados da animação 3D (Efeito de deslizamento em cubo/perspectiva) */
+    .tab-3d-active {
+      transform: rotateY(0deg) translateX(0) translateZ(0);
+      opacity: 1;
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .tab-3d-left {
+      transform: rotateY(-35deg) translateX(-105%) translateZ(-150px);
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      pointer-events: none;
+    }
+
+    .tab-3d-right {
+      transform: rotateY(35deg) translateX(105%) translateZ(-150px);
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      pointer-events: none;
+    }
+
     /* Estilos estritos para impressão térmica */
     @media print {
       body * {
@@ -66,24 +104,25 @@
 </head>
 <body class="h-full bg-slate-950 text-slate-100 font-sans flex flex-col pb-20 md:pb-0 overflow-x-hidden">
 
-  <!-- --- Header para Desktop --- -->
-  <header class="no-print hidden md:block bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 px-6 py-4">
-    <div class="max-w-6xl mx-auto flex justify-between items-center">
-      <!-- Lado Esquerdo: Logo -->
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/10">
-          <svg class="w-5 h-5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <!-- --- Header Universal de Aplicativo (Desktop & Mobile) --- -->
+  <header class="no-print bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 px-4 md:px-6 py-4">
+    <div class="max-w-6xl mx-auto flex justify-between items-center relative">
+      
+      <!-- Lado Esquerdo: Identidade do Aplicativo -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/10">
+          <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
           </svg>
         </div>
         <div>
-          <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Printfy</h1>
-          <p class="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase">Etiquetas NaviVendas</p>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Printfy</h1>
+          <p class="text-[9px] sm:text-[10px] text-emerald-400 font-bold tracking-wider uppercase">Etiquetas NaviVendas</p>
         </div>
       </div>
 
-      <!-- Abas de Navegação Desktop (Centralizadas) -->
-      <nav class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 absolute left-1/2 transform -translate-x-1/2">
+      <!-- Abas de Navegação Desktop (Centralizadas no meio) -->
+      <nav class="hidden md:flex bg-slate-950 p-1 rounded-xl border border-slate-800 absolute left-1/2 transform -translate-x-1/2">
         <button onclick="switchTab('main')" id="tab-main-btn" class="nav-btn px-4 py-2 text-xs font-semibold rounded-lg transition-all bg-slate-850 text-white flex items-center gap-2">
           Painel & Fila
           <span class="queue-badge bg-emerald-500 text-slate-950 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">0</span>
@@ -94,10 +133,10 @@
         </button>
       </nav>
 
-      <!-- Lado Direito: Botão de Configurações (Engrenagem) -->
-      <div class="flex items-center gap-3">
+      <!-- Lado Direito: Botão Ajustes (Universal) -->
+      <div class="flex items-center gap-2">
         <button onclick="toggleSettingsDrawer()" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition-all text-slate-300 hover:text-white" title="Configurações e Layout">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 animate-hover-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
@@ -106,12 +145,13 @@
     </div>
   </header>
 
-  <!-- --- Barra de Navegação Inferior para Celular (Centralizada com Ajustes na Direita) --- -->
-  <nav class="no-print md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800/80 z-40 flex justify-between items-center py-2 px-8 shadow-lg shadow-black/50">
-    <div class="flex justify-center items-center gap-8 mx-auto">
-      <button onclick="switchTab('main')" id="m-tab-main-btn" class="m-nav-btn flex flex-col items-center gap-1 text-emerald-400 transition-all relative">
+  <!-- --- Barra de Navegação Inferior para Celular (Centralizada) --- -->
+  <nav class="no-print md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800/80 z-45 flex justify-center items-center py-2 px-8 shadow-lg shadow-black/50">
+    <div class="flex justify-center items-center gap-12">
+      <!-- Painel & Fila -->
+      <button onclick="switchTab('main')" id="m-tab-main-btn" class="m-nav-btn flex flex-col items-center gap-1 text-emerald-400 transition-all">
         <div class="relative">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
           <span class="absolute -top-1.5 -right-3 bg-emerald-500 text-slate-950 text-[8px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center queue-badge">0</span>
@@ -119,9 +159,10 @@
         <span class="text-[10px] font-medium">Painel & Fila</span>
       </button>
       
+      <!-- Estoque Geral -->
       <button onclick="switchTab('inventory')" id="m-tab-inventory-btn" class="m-nav-btn flex flex-col items-center gap-1 text-slate-400 transition-all">
         <div class="relative">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
           <span class="absolute -top-1.5 -right-3 bg-slate-800 text-slate-400 text-[8px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center inventory-count">0</span>
@@ -129,25 +170,16 @@
         <span class="text-[10px] font-medium">Estoque</span>
       </button>
     </div>
-
-    <!-- Botão de Configurações no Mobile (Direita) -->
-    <button onclick="toggleSettingsDrawer()" class="flex flex-col items-center gap-1 text-slate-400 transition-all">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-      <span class="text-[10px] font-semibold text-slate-400">Ajustes</span>
-    </button>
   </nav>
 
   <!-- --- Área de Conteúdo Geral --- -->
   <main class="flex-grow max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
     
-    <!-- Lado Esquerdo: Abas de Trabalho -->
-    <div class="lg:col-span-7 flex flex-col gap-5 no-print">
+    <!-- Lado Esquerdo: Abas de Trabalho com Container de Gesto e Perspectiva 3D -->
+    <div id="gesture-touch-zone" class="lg:col-span-7 viewport-3d no-print">
 
       <!-- Aba 1: Painel Principal (Busca Rápida de Produtos + Fila Ativa no mesmo lugar) -->
-      <section id="tab-main" class="tab-content bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col gap-5">
+      <section id="tab-main" class="tab-content-3d tab-3d-active bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col gap-5">
         <div>
           <h2 class="text-lg font-extrabold text-white mb-0.5 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -202,10 +234,18 @@
           <p class="text-xs font-semibold">Sua lista está vazia</p>
           <p class="text-[10px] text-slate-600 mt-0.5">Use o campo de pesquisa acima para adicionar itens para imprimir.</p>
         </div>
+
+        <!-- Indicador de Arrasto Mobile -->
+        <div class="md:hidden text-center text-[10px] text-slate-500/80 pt-2 flex items-center justify-center gap-1">
+          <span>Deslize para a esquerda para abrir o Estoque</span>
+          <svg class="w-3 h-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </div>
       </section>
 
       <!-- Aba 2: Estoque Geral (Cadastro, Edição, Importação e Exclusão) -->
-      <section id="tab-inventory" class="tab-content hidden bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col gap-4">
+      <section id="tab-inventory" class="tab-content-3d tab-3d-right bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col gap-4">
         <div class="flex justify-between items-center flex-wrap gap-2">
           <div>
             <h2 class="text-lg font-extrabold text-white">Cadastro & Estoque Completo</h2>
@@ -268,6 +308,14 @@
               <!-- Preenchido dinamicamente por JS -->
             </tbody>
           </table>
+        </div>
+
+        <!-- Indicador de Arrasto Mobile -->
+        <div class="md:hidden text-center text-[10px] text-slate-500/80 pt-2 flex items-center justify-center gap-1">
+          <svg class="w-3 h-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>Deslize para a direita para abrir o Painel</span>
         </div>
       </section>
 
@@ -490,6 +538,7 @@
     // --- ESTADO GLOBAL ---
     let inventory = [];
     let printQueue = {}; // Armazena { code: quantidade }
+    let currentActiveTab = 'main'; // Controlar aba ativa
     
     let layout = {
       cols: 3,
@@ -545,6 +594,9 @@
         silentSyncWithSheets(savedUrl);
       }
 
+      // Habilitar os Gestos de Deslizar (Swipe) para Celular
+      setupTouchSwipeGestures();
+
       updateInventoryBadges();
       renderMainSearchSuggestions();
       renderQueueList();
@@ -580,11 +632,9 @@
     }
 
     function updateInventoryBadges() {
-      // Contagem de itens no estoque geral
       const counts = document.querySelectorAll('.inventory-count');
       counts.forEach(el => el.textContent = inventory.length);
 
-      // Contagem de itens selecionados para imprimir (Quantidade somada ou tipos de itens)
       let sumOfLabels = 0;
       Object.values(printQueue).forEach(qty => {
         sumOfLabels += qty;
@@ -600,7 +650,6 @@
       });
     }
 
-    // Sincronizar inputs de configurações físicas com o estado de layout carregado
     function syncSettingsInputs() {
       document.getElementById('input-cols').value = layout.cols;
       document.getElementById('input-widthMm').value = layout.widthMm;
@@ -617,12 +666,11 @@
       document.getElementById('input-fontSizeTitle').value = layout.fontSizeTitle;
       document.getElementById('input-fontSizePrice').value = layout.fontSizePrice;
 
-      // Atualizar as labels de exibição numérica do lado
       document.getElementById('val-cols').textContent = layout.cols;
       document.getElementById('val-paddingLeftMm').textContent = layout.paddingLeftMm;
     }
 
-    // --- TOAST NOTIFICATIONS (Substitui os alerts do Sandbox) ---
+    // --- TOAST NOTIFICATIONS ---
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -638,59 +686,95 @@
       
       container.appendChild(toast);
       
-      // Animar entrada
       setTimeout(() => {
         toast.classList.remove('translate-y-2', 'opacity-0');
       }, 50);
 
-      // Remover após tempo
       setTimeout(() => {
         toast.classList.add('translate-y-2', 'opacity-0');
         setTimeout(() => toast.remove(), 300);
       }, 3000);
     }
 
-    // --- NAVEGAÇÃO DE ABAS ADAPTATIVA ---
+    // --- TRANSICIONADOR DE ABAS COM PERSPECTIVA 3D ---
     function switchTab(tabId) {
-      // Ocultar todas as abas
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      // Mostrar aba ativa
-      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      if (currentActiveTab === tabId) return;
 
-      // Atualizar botões Desktop
+      const mainTab = document.getElementById('tab-main');
+      const inventoryTab = document.getElementById('tab-inventory');
+
+      if (tabId === 'main') {
+        // Trazer a aba "Main" do lado esquerdo em rotação e enviar a outra para a direita
+        inventoryTab.className = "tab-content-3d tab-3d-right";
+        mainTab.className = "tab-content-3d tab-3d-active";
+      } else {
+        // Trazer a aba "Inventory" do lado direito em rotação e enviar a outra para a esquerda
+        mainTab.className = "tab-content-3d tab-3d-left";
+        inventoryTab.className = "tab-content-3d tab-3d-active";
+      }
+
+      currentActiveTab = tabId;
+
+      // Atualizar botões de navegação no Desktop
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('bg-slate-850', 'text-white');
         btn.classList.add('text-slate-400', 'hover:text-white');
       });
-      const activeDesktopBtn = document.getElementById(`tab-${tabId}-btn`);
+      const activeDesktopBtn = document.getElementById(`tab-${tabId === 'main' ? 'main' : 'inventory'}-btn`);
       if (activeDesktopBtn) {
         activeDesktopBtn.classList.remove('text-slate-400', 'hover:text-white');
         activeDesktopBtn.classList.add('bg-slate-850', 'text-white');
       }
 
-      // Atualizar botões Mobile
+      // Atualizar botões de navegação no Celular
       document.querySelectorAll('.m-nav-btn').forEach(btn => {
         btn.classList.remove('text-emerald-400');
         btn.classList.add('text-slate-400');
       });
-      const activeMobileBtn = document.getElementById(`m-tab-${tabId}-btn`);
+      const activeMobileBtn = document.getElementById(`m-tab-${tabId === 'main' ? 'main' : 'inventory'}-btn`);
       if (activeMobileBtn) {
         activeMobileBtn.classList.remove('text-slate-400');
         activeMobileBtn.classList.add('text-emerald-400');
       }
     }
 
-    // --- GERENCIAMENTO DO DRAWER DE CONFIGURAÇÕES (LADO DIREITO) ---
-    function toggleSettingsDrawer() {
-      const drawer = document.getElementById('settings-drawer');
-      if (drawer.classList.contains('translate-x-full')) {
-        drawer.classList.remove('translate-x-full');
-      } else {
-        drawer.classList.add('translate-x-full');
-      }
+    // --- DETECÇÃO DE DESLIZAMENTO DE TELA (SWIPE) MOBILE ---
+    function setupTouchSwipeGestures() {
+      const touchZone = document.getElementById('gesture-touch-zone');
+      let startX = 0;
+      let startY = 0;
+      let endX = 0;
+      let endY = 0;
+      const swipeThreshold = 80; // pixels mínimos para disparar a troca
+
+      touchZone.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+
+      touchZone.addEventListener('touchend', function(e) {
+        endX = e.changedTouches[0].clientX;
+        endY = e.changedTouches[0].clientY;
+
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
+
+        // Garantir que o gesto foi predominantemente horizontal
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          if (Math.abs(deltaX) > swipeThreshold) {
+            if (deltaX > 0) {
+              // Arrasto para a direita -> Abre aba Painel (Main)
+              switchTab('main');
+            } else {
+              // Arrasto para a esquerda -> Abre aba Estoque (Inventory)
+              switchTab('inventory');
+            }
+          }
+        }
+      }, { passive: true });
     }
 
-    // --- PARSER DE IMPORTAÇÃO (TXT NaVendas & CSV) ---
+    // --- PARSER DE IMPORTAÇÃO (TXT NaviVendas & CSV) ---
     function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -744,7 +828,6 @@
       let updated = 0;
 
       lines.forEach((line, index) => {
-        // Ignorar cabeçalho se houver
         if (index === 0 && (line.toLowerCase().includes('codigo') || line.toLowerCase().includes('nome'))) return;
 
         const cols = line.split(/[,;]/);
@@ -783,15 +866,14 @@
       const sBox = document.getElementById('main-suggestions-box');
       sBox.innerHTML = '';
 
-      // Se a busca estiver vazia, mostramos os últimos produtos cadastrados como atalhos sugeridos
       let listToShow = [];
       if (!query) {
-        listToShow = inventory.slice(-5).reverse(); // Mostrar últimos 5 itens
+        listToShow = inventory.slice(-5).reverse();
       } else {
         listToShow = inventory.filter(p => 
           p.name.toLowerCase().includes(query) || 
           p.code.toLowerCase().includes(query)
-        ).slice(0, 8); // Limitar a 8 resultados
+        ).slice(0, 8);
       }
 
       if (listToShow.length === 0) {
@@ -812,7 +894,7 @@
         };
 
         row.innerHTML = `
-          <div class="flex-grow pr-3">
+          <div class="flex-grow pr-3 min-w-0">
             <span class="text-xs font-semibold text-white group-hover:text-emerald-400 block line-clamp-1 leading-tight">${p.name}</span>
             <span class="text-[10px] font-mono text-slate-500">${p.code} • R$ ${p.price.toFixed(2)}</span>
           </div>
@@ -883,7 +965,6 @@
       showToast('Todo o carrinho de impressão foi limpo.', 'info');
     }
 
-    // Renderizar a fila de impressão no Painel Principal (Aba 1)
     function renderQueueList() {
       const container = document.getElementById('main-queue-container');
       const emptyState = document.getElementById('main-queue-empty');
@@ -942,8 +1023,7 @@
       });
     }
 
-
-    // --- ABA 2: RENDERIZAR TABELA DO ESTOQUE GERAL (COM BOTÕES DE EDITAR/EXCLUIR) ---
+    // --- ABA 2: RENDERIZAR TABELA DO ESTOQUE GERAL ---
     function renderInventoryTable() {
       const query = document.getElementById('inventory-search-input').value.toLowerCase().trim();
       const tbody = document.getElementById('inventory-table-body');
@@ -1004,7 +1084,7 @@
       }
     }
 
-    // --- PARÂMETROS DE MARGENS E LAYOUT ---
+    // --- CONFIGURAÇÕES DE LAYOUT ---
     function updateLayoutParam(key, value) {
       if (key === 'showName' || key === 'showPrice' || key === 'showCode' || key === 'showBarcode') {
         layout[key] = value;
@@ -1012,7 +1092,6 @@
         layout[key] = parseFloat(value) || 0;
       }
 
-      // Atualizar valores de visualização numérica
       const valLabel = document.getElementById('val-' + key);
       if (valLabel) valLabel.textContent = value;
 
@@ -1029,7 +1108,7 @@
         const digit = parseInt(codeString[i]) || 0;
         pattern += (digit % 2 === 0) ? "1100101" : "1001101";
       }
-      pattern += "101"; // Encerramento
+      pattern += "101";
 
       const width = pattern.length * 1.5;
       const height = 18;
@@ -1053,7 +1132,6 @@
       const container = document.getElementById('print-area-wrapper');
       container.innerHTML = '';
 
-      // Montar a fila física baseada nas quantidades informadas
       const labelList = [];
       inventory.forEach(p => {
         const qty = printQueue[p.code] || 0;
@@ -1069,13 +1147,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
             </svg>
             <p class="text-xs font-semibold">Sem Etiquetas Ativas</p>
-            <p class="text-[10px] text-slate-600 mt-0.5">Adicione algum produto ao carrinho no painel principal para ver as folhas.</p>
+            <p class="text-[10px] text-slate-600 mt-0.5">Adicione algum produto no carrinho no painel principal para ver as folhas.</p>
           </div>
         `;
         return;
       }
 
-      // Estilo de Grade Dinâmico baseado em Milímetros
       const grid = document.createElement('div');
       grid.style.display = 'grid';
       grid.style.gridTemplateColumns = `repeat(${layout.cols}, ${layout.widthMm}mm)`;
@@ -1093,7 +1170,6 @@
         label.style.padding = '1.5mm';
         label.style.fontFamily = 'system-ui, sans-serif';
 
-        // 1. Nome do Produto (Topo)
         let nameEl = '';
         if (layout.showName) {
           nameEl = `
@@ -1104,8 +1180,6 @@
           `;
         }
 
-        // 2. Elementos inferiores (Alinhamento solicitado pelo usuário)
-        // Código de barras
         let barcodeEl = '';
         if (layout.showBarcode) {
           barcodeEl = `
@@ -1115,13 +1189,11 @@
           `;
         }
 
-        // CÓDIGO DO PRODUTO EMBAIXO DO CÓDIGO DE BARRAS
         let codeEl = '';
         if (layout.showCode) {
           codeEl = `<div class="text-[8px] text-slate-800 font-mono text-center leading-none mt-0.5 mb-1">${p.code}</div>`;
         }
 
-        // PREÇO EM DESTAQUE NA BASE DA ETIQUETA
         let priceEl = '';
         if (layout.showPrice) {
           priceEl = `<div class="font-extrabold text-center tracking-tight leading-none" style="font-size: ${layout.fontSizePrice}px;">R$ ${p.price.toFixed(2)}</div>`;
@@ -1146,7 +1218,7 @@
       window.print();
     }
 
-    // --- MODAL DE PRODUTO MANUAL (CRIAÇÃO E EDIÇÃO) ---
+    // --- MODAL DE PRODUTO MANUAL ---
     function openProductModal(mode, existingCode = '') {
       const modal = document.getElementById('product-modal');
       const title = document.getElementById('modal-title');
@@ -1193,10 +1265,8 @@
       }
 
       if (origCode) {
-        // MODO EDIÇÃO: Atualiza o produto existente
         const idx = inventory.findIndex(item => item.code === origCode);
         if (idx >= 0) {
-          // Se alterou o código de barras, atualiza também a fila de impressão
           if (origCode !== code) {
             const existsNew = inventory.some(item => item.code === code);
             if (existsNew) {
@@ -1212,7 +1282,6 @@
           showToast('Produto atualizado com sucesso!');
         }
       } else {
-        // MODO INSERÇÃO: Adiciona um novo produto
         const exists = inventory.some(p => p.code === code);
         if (exists) {
           showToast('Este código de barras já existe no estoque local!', 'error');
@@ -1251,7 +1320,7 @@
         let updated = 0;
 
         lines.forEach((line, index) => {
-          if (index === 0) return; // Ignorar cabeçalho
+          if (index === 0) return;
 
           const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
           if (cols.length < 2) return;
@@ -1302,7 +1371,7 @@
       });
     }
 
-    // --- EXPORTAR BACKUP ---
+    // --- BACKUPS ---
     function exportToTXT() {
       let txtContent = "";
       inventory.forEach(p => {
