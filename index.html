@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts para Tipografia Limpa -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <!-- JsBarcode para Geração de Códigos de Barras Reais Legíveis por Leitor Físico -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -141,7 +143,7 @@
       <!-- Lado Direito: Botão Ajustes (Universal) -->
       <div class="flex items-center gap-2">
         <button onclick="toggleSettingsDrawer()" class="p-2.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl transition-all text-emerald-400 hover:text-emerald-300" title="Configurações e Layout">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 animate-hover-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
@@ -151,7 +153,7 @@
   </header>
 
   <!-- --- Barra de Navegação Inferior Otimizada para Celulares Modernos (z-50 + pb-safe) --- -->
-  <nav class="no-print md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800/80 z-50 flex justify-center items-center py-3 pb-safe-bottom px-8 shadow-[0_-8px_30px_rgb(0,0,0,0.5)]">
+  <nav class="no-print md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800/80 z-45 flex justify-center items-center py-3 pb-safe-bottom px-8 shadow-[0_-8px_30px_rgb(0,0,0,0.5)]">
     <div class="flex justify-center items-center gap-16">
       <!-- Painel & Fila -->
       <button onclick="switchTab('main')" id="m-tab-main-btn" class="m-nav-btn flex flex-col items-center gap-1.5 text-emerald-400 transition-all">
@@ -159,9 +161,9 @@
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
-          <span class="absolute -top-1.5 -right-3.5 bg-emerald-505 bg-emerald-500 text-slate-950 text-[9px] font-extrabold w-4.5 h-4.5 rounded-full flex items-center justify-center queue-badge">0</span>
+          <span class="absolute -top-1.5 -right-3.5 bg-emerald-500 text-slate-950 text-[9px] font-extrabold w-4.5 h-4.5 rounded-full flex items-center justify-center queue-badge">0</span>
         </div>
-        <span class="text-[11px] font-semibold tracking-wide">Painel & Fila</span>
+        <span class="text-[11px] font-semibold tracking-wide font-sans">Painel & Fila</span>
       </button>
       
       <!-- Estoque Geral -->
@@ -172,7 +174,7 @@
           </svg>
           <span class="absolute -top-1.5 -right-3.5 bg-slate-800 text-slate-400 text-[9px] font-extrabold w-4.5 h-4.5 rounded-full flex items-center justify-center inventory-count">0</span>
         </div>
-        <span class="text-[11px] font-semibold tracking-wide">Estoque</span>
+        <span class="text-[11px] font-semibold tracking-wide font-sans">Estoque</span>
       </button>
     </div>
   </nav>
@@ -278,7 +280,7 @@
               <p class="text-[10px] text-slate-500">Aceita formatos de texto TXT ou tabelas CSV</p>
             </div>
           </div>
-          <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 transition-colors rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 cursor-pointer">
+          <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 transition-colors rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 cursor-pointer">
             Carregar Arquivo
             <input type="file" accept=".txt,.csv" onchange="handleFileSelect(event)" class="hidden" />
           </label>
@@ -294,7 +296,7 @@
             class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-9 text-xs text-slate-100 focus:outline-none focus:border-emerald-500 transition-colors"
           />
           <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
 
@@ -354,7 +356,7 @@
   <!-- --- SOMBREAMENTO/BACKDROP DO MENU LATERAL (FECHAR AO TOCAR FORA) --- -->
   <div id="settings-backdrop" class="no-print fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300" onclick="toggleSettingsDrawer()"></div>
 
-  <!-- --- PAINEL LATERAL DE CONFIGURAÇÕES (DRAWER) COM COBERTURA TOTAL DE TOQUES (z-50) --- -->
+  <!-- --- PAINEL LATERAL DE CONFIGURAÇÕES (DRAWER) --- -->
   <div id="settings-drawer" class="no-print fixed inset-y-0 right-0 max-w-md w-full bg-slate-900 border-l border-slate-800/80 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out">
     <div class="h-full flex flex-col justify-between">
       
@@ -748,10 +750,9 @@
     function setupTouchSwipeGestures() {
       let startX = 0;
       let startY = 0;
-      const swipeThreshold = 75; // Limiar ideal para trocar de aba sem falsos positivos
+      const swipeThreshold = 75;
 
       document.addEventListener('touchstart', function(e) {
-        // Ignorar interações de arraste em inputs range e caixas de rolagem
         if (e.target.closest('input[type="range"], .overflow-auto, .overflow-y-auto, #print-area-wrapper')) return;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
@@ -765,7 +766,6 @@
         const deltaX = endX - startX;
         const deltaY = endY - startY;
 
-        // Se o movimento for predominantemente horizontal, fazemos o swipe
         if (Math.abs(deltaX) > Math.abs(deltaY) * 1.6) {
           if (Math.abs(deltaX) > swipeThreshold) {
             if (deltaX > 0) {
@@ -778,20 +778,18 @@
       }, { passive: true });
     }
 
-    // --- ABRIR / FECHAR O DRAWER DE CONFIGURAÇÕES DE MANEIRA ROBUSTA ---
+    // --- ABRIR / FECHAR O DRAWER DE CONFIGURAÇÕES ---
     function toggleSettingsDrawer() {
       const drawer = document.getElementById('settings-drawer');
       const backdrop = document.getElementById('settings-backdrop');
       
       if (drawer.classList.contains('translate-x-full')) {
-        // Abrir
         drawer.classList.remove('translate-x-full');
         backdrop.classList.remove('hidden');
         setTimeout(() => {
           backdrop.classList.remove('opacity-0');
         }, 10);
       } else {
-        // Fechar
         drawer.classList.add('translate-x-full');
         backdrop.classList.add('opacity-0');
         setTimeout(() => {
@@ -813,11 +811,13 @@
         } else {
           parseNaVendasTXT(text);
         }
+        // Limpar o input de arquivo para permitir importar o mesmo arquivo novamente se necessário
+        event.target.value = '';
       };
       reader.readAsText(file);
     }
 
-    // Processar o TXT do NaVendas
+    // Processar o TXT do NaviVendas de acordo com a lógica de posições fixas correta
     function parseNaVendasTXT(text) {
       const lines = text.split(/\r?\n/);
       let added = 0;
@@ -826,9 +826,12 @@
       lines.forEach(line => {
         if (line.trim().length < 20) return;
         try {
+          // Lógica de extração de posições fixas do NaviVendas
           const code = line.substring(0, 9).trim();
           const rawPrice = line.substring(9, 19).trim();
           const name = line.substring(19, 69).trim();
+          
+          // Divide o preço absoluto obtido do arquivo por 100000 para a casa decimal correta (Ex: 0004800000 vira 48.00)
           const price = parseFloat(rawPrice) / 100000;
 
           if (!code || !name) return;
@@ -841,7 +844,9 @@
             inventory.push({ code, name, price: isNaN(price) ? 0 : price });
             added++;
           }
-        } catch(err) {}
+        } catch(err) {
+          console.error("Erro ao analisar linha: ", err);
+        }
       });
 
       saveAndNotify(added, updated, 'TXT NaviVendas');
@@ -1117,34 +1122,6 @@
       renderLabelsPreview();
     }
 
-    // --- AUXILIAR: GERAÇÃO DE CÓDIGO DE BARRAS LEVE (SVG) ---
-    function generateBarcodeSVG(code) {
-      const codeString = code.toString();
-      let pattern = "";
-      
-      for (let i = 0; i < codeString.length; i++) {
-        const digit = parseInt(codeString[i]) || 0;
-        pattern += (digit % 2 === 0) ? "1100101" : "1001101";
-      }
-      pattern += "101";
-
-      const width = pattern.length * 1.5;
-      const height = 18;
-      
-      let rects = "";
-      for (let i = 0; i < pattern.length; i++) {
-        if (pattern[i] === '1') {
-          rects += `<rect x="${i * 1.5}" y="0" width="1.5" height="${height}" fill="black" />`;
-        }
-      }
-
-      return `
-        <svg viewBox="0 0 ${width} ${height}" class="w-full h-full" style="max-height: 18px;">
-          ${rects}
-        </svg>
-      `;
-    }
-
     // --- RENDERIZADOR DAS ETIQUETAS EM TEMPO REAL ---
     function renderLabelsPreview() {
       const container = document.getElementById('print-area-wrapper');
@@ -1165,7 +1142,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
             </svg>
             <p class="text-xs font-semibold">Sem Etiquetas Ativas</p>
-            <p class="text-[10px] text-slate-600 mt-0.5">Adicione algum produto no carrinho no painel principal para ver as folhas.</p>
+            <p class="text-[10px] text-slate-600 mt-0.5">Adicione algum produto ao carrinho no painel principal para ver as folhas.</p>
           </div>
         `;
         return;
@@ -1180,36 +1157,38 @@
       grid.style.justifyContent = 'start';
       grid.style.background = '#ffffff';
 
-      labelList.forEach(p => {
+      labelList.forEach((p, idx) => {
         const label = document.createElement('div');
         label.className = 'flex flex-col justify-between overflow-hidden text-black bg-white box-border border border-dashed border-slate-200';
         label.style.width = `${layout.widthMm}mm`;
         label.style.height = `${layout.heightMm}mm`;
-        label.style.padding = '1.5mm';
+        label.style.padding = '1.2mm 1.5mm';
         label.style.fontFamily = 'system-ui, sans-serif';
 
         let nameEl = '';
         if (layout.showName) {
           nameEl = `
             <div class="text-center uppercase font-bold tracking-tight line-clamp-2 overflow-hidden" 
-                 style="font-size: ${layout.fontSizeTitle}px; max-height: 2.3em; line-height: 1.1;">
+                 style="font-size: ${layout.fontSizeTitle}px; max-height: 2.2em; line-height: 1.1;">
               ${p.name}
             </div>
           `;
         }
 
+        // Gera uma tag SVG para ser processada pelo JsBarcode posteriormente
+        const barcodeId = `barcode-item-${idx}`;
         let barcodeEl = '';
         if (layout.showBarcode) {
           barcodeEl = `
-            <div class="w-full flex justify-center items-center overflow-hidden px-1 my-0.5">
-              ${generateBarcodeSVG(p.code)}
+            <div class="w-full flex justify-center items-center overflow-hidden my-0.5">
+              <svg id="${barcodeId}" class="w-full h-auto" style="max-height: 22px;"></svg>
             </div>
           `;
         }
 
         let codeEl = '';
         if (layout.showCode) {
-          codeEl = `<div class="text-[8px] text-slate-800 font-mono text-center leading-none mt-0.5 mb-1">${p.code}</div>`;
+          codeEl = `<div class="text-[8.5px] text-slate-800 font-mono text-center leading-none tracking-wider mb-1">${p.code}</div>`;
         }
 
         let priceEl = '';
@@ -1225,7 +1204,27 @@
             ${priceEl}
           </div>
         `;
+        
         grid.appendChild(label);
+
+        // Dispara a renderização oficial e legível do JsBarcode para cada item individual
+        if (layout.showBarcode) {
+          setTimeout(() => {
+            try {
+              JsBarcode(`#${barcodeId}`, p.code, {
+                format: "CODE128",
+                width: 1.6,
+                height: 25,
+                displayValue: false,
+                margin: 0,
+                background: "transparent",
+                lineColor: "#000000"
+              });
+            } catch (err) {
+              console.error("Falha ao gerar o código de barras oficial com JsBarcode: ", err);
+            }
+          }, 0);
+        }
       });
 
       container.appendChild(grid);
@@ -1401,7 +1400,6 @@
       triggerDownload(txtContent, 'printfy_navivendas_backup.txt', 'text/plain');
     }
 
-    // --- EXPORTAR BACKUP ---
     function exportToCSV() {
       let csvContent = "Codigo,Nome,Preco\n";
       inventory.forEach(p => {
