@@ -4,71 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SaaS CalcPrecificar - Painel Inteligente</title>
-    <!-- Tailwind CSS para Estilização de Alta Performance -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fonte Inter do Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom scrollbar para melhor usabilidade */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-        /* Animação suave para rotação */
-        .animate-spin-slow {
-            animation: spin 3s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
-
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-    <div id="app-viewport" class="flex-grow flex flex-col">
-        <!-- Renderizado dinamicamente via JavaScript -->
-    </div>
+    <div id="app-viewport" class="flex-grow flex flex-col"></div>
 
     <script>
-        // --- STREAMING_CHUNK: Banco de dados vetorial de ícones SVG nativos ---
         const SVG_ICONS = {
-            calculator: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="22" x2="16" y2="16"/><line x1="9" y1="16" x2="16" y2="16"/><line x1="9" y1="12" x2="9" y2="12.01"/><line x1="12" y1="12" x2="12" y2="12.01"/><line x1="15" y1="12" x2="15" y2="12.01"/><line x1="12" y1="16" x2="12" y2="16.01"/></svg>`,
-            upload: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="17"/></svg>`,
-            "trash-2": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
-            check: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><polyline points="20 6 9 17 4 12"/></svg>`,
-            settings: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
-            "user-plus": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>`,
-            "refresh-cw": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`,
-            users: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
-            "shield-alert": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
-            database: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>`,
-            history: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="14"/></svg>`,
-            "file-text": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
-            "dollar-sign": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
-            briefcase: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
-            "alert-circle": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
-            "help-circle": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-            search: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
-            "check-circle-2": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
-            "log-out": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
-            "chevron-right": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><polyline points="9 18 15 12 9 6"/></svg>`,
-            "file-spreadsheet": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`
+            calculator: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="16" y2="10"></line><line x1="8" y1="14" x2="16" y2="14"></line><line x1="8" y1="18" x2="16" y2="18"></line></svg>',
+            upload: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>',
+            "trash-2": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>',
+            check: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+            settings: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6m-17.78 7.78l4.24-4.24m3.08-3.08l4.24-4.24"></path></svg>',
+            "user-plus": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>',
+            "refresh-cw": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36M20.49 15a9 9 0 0 1-14.85 3.36"></path></svg>',
+            users: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+            "shield-alert": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
+            database: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5c0 1.657 4.03 3 9 3s9-1.343 9-3"></path><path d="M3 5v8c0 1.657 4.03 3 9 3s9-1.343 9-3V5"></path><ellipse cx="12" cy="19" rx="9" ry="3"></ellipse><path d="M3 13c0 1.657 4.03 3 9 3s9-1.343 9-3"></path></svg>',
+            history: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="12" cy="12" r="9"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+            "file-text": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="19" x2="12" y2="19"></line><line x1="12" y1="13" x2="12" y2="13"></line></svg>',
+            "dollar-sign": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+            briefcase: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path></svg>',
+            "alert-circle": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+            "help-circle": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>',
+            search: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+            "check-circle-2": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M17 11l2 2 4-4"></path></svg>',
+            "log-out": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M10 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3m7-5l5-5m0 0l-5-5m5 5H8"></path></svg>',
+            "chevron-right": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><polyline points="9 18 15 12 9 6"></polyline></svg>',
+            "file-spreadsheet": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="##CLASS##"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><rect x="3" y="8" width="18" height="13" rx="1" ry="1"></rect><line x1="3" y1="13" x2="21" y2="13"></line><line x1="9" y1="8" x2="9" y2="21"></line></svg>'
         };
 
         function getIcon(name, customClass = "w-5 h-5") {
@@ -76,7 +50,6 @@
             return raw.replace("##CLASS##", customClass);
         }
 
-        // --- STREAMING_CHUNK: Inicializando base de dados padrão simulada ---
         const INITIAL_USERS = [
             { id: 1, login: "123", senha: "123", regime: "Lucro Presumido", status: "OK", nome: "Administrador Demo" },
             { id: 2, login: "joao_simples", senha: "123", regime: "Simples Nacional", status: "OK", nome: "Mercado João Ltda" },
@@ -95,7 +68,6 @@
             { id: 'h2', fileName: 'NFe_35260608_sabao_coco.xml', date: '08/06/2026', itemsCount: 1, totalCost: 175.00, supplier: 'Química Industrial Norte' }
         ];
 
-        // --- STREAMING_CHUNK: Controlando estado e carregando do localstorage ---
         let state = {
             currentUser: null,
             activeTab: 'pricing', 
@@ -111,7 +83,6 @@
             localStorage.setItem('saas_html_history', JSON.stringify(state.history));
         }
 
-        // --- STREAMING_CHUNK: Sistema de Notificação Toast (Alternativa ao alert) ---
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -120,33 +91,26 @@
             }`;
             
             const iconName = type === 'error' ? 'shield-alert' : 'check-circle-2';
-            toast.innerHTML = `
-                ${getIcon(iconName, "w-5 h-5 shrink-0")}
-                <span class="font-medium text-sm">${message}</span>
-            `;
+            toast.innerHTML = `${getIcon(iconName, "w-5 h-5 shrink-0")}<span class="font-medium text-sm">${message}</span>`;
             container.appendChild(toast);
             
-            setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
         }
 
-        // --- STREAMING_CHUNK: Calculando alíquotas fiscais com base no regime ---
         function getTaxRates(regime) {
             switch (regime) {
                 case 'Simples Nacional':
                     return { pis: 0.0, cofins: 0.0, irpjcsll: 0.0, icms: 0.08, total: 0.08, label: 'Simples Nacional Comércio (8%)' };
                 case 'Lucro Presumido':
-                    return { pis: 0.0065, cofins: 0.03, irpjcsll: 0.0228, icms: 0.17, total: 0.2293, label: 'Presumido (PIS/COF/IR/CS/ICMS - 22.93%)' };
+                    return { pis: 0.0065, cofins: 0.03, irpjcsll: 0.0228, icms: 0.17, total: 0.2293, label: 'Presumido (22.93%)' };
                 case 'Lucro Real':
-                    return { pis: 0.0165, cofins: 0.076, irpjcsll: 0.0869, icms: 0.17, total: 0.3494, label: 'Lucro Real Não-Cumulativo (34.94%)' };
+                    return { pis: 0.0165, cofins: 0.076, irpjcsll: 0.0869, icms: 0.17, total: 0.3494, label: 'Lucro Real (34.94%)' };
                 default:
-                    return { pis: 0.0, cofins: 0.0, irpjcsll: 0.0, icms: 0.17, total: 0.17, label: 'Sem Regime (ICMS 17%)' };
+                    return { pis: 0.0, cofins: 0.0, irpjcsll: 0.0, icms: 0.17, total: 0.17, label: 'Sem Regime (17%)' };
             }
         }
 
@@ -154,34 +118,23 @@
             const taxes = getTaxRates(state.currentUser ? state.currentUser.regime : 'Simples Nacional');
             const marginFrac = desiredMarginPercent / 100;
             const taxFrac = taxes.total;
-
             const factor = 1 - taxFrac - marginFrac;
             if (factor <= 0.05) {
-                return {
-                    suggestedPrice: unitCost * (1 + marginFrac) * (1 + taxFrac),
-                    markup: (1 + marginFrac) * (1 + taxFrac),
-                    isEmergency: true
-                };
+                return { suggestedPrice: unitCost * (1 + marginFrac) * (1 + taxFrac), markup: (1 + marginFrac) * (1 + taxFrac), isEmergency: true };
             }
             const price = unitCost / factor;
-            return {
-                suggestedPrice: price,
-                markup: price / unitCost,
-                isEmergency: false
-            };
+            return { suggestedPrice: price, markup: price / unitCost, isEmergency: false };
         }
 
-        // --- STREAMING_CHUNK: Gerenciando controle de logins de usuários ---
         function handleLogin(event) {
             event.preventDefault();
             const loginInput = document.getElementById('login-username').value;
             const passwordInput = document.getElementById('login-password').value;
-
             const matchedUser = state.users.find(u => u.login === loginInput && u.senha === passwordInput);
 
             if (matchedUser) {
                 if (matchedUser.status === 'X') {
-                    document.getElementById('login-error-msg').innerText = 'Acesso bloqueado! Entre em contato com o suporte ou ADM para regularizar.';
+                    document.getElementById('login-error-msg').innerText = 'Acesso bloqueado! Entre em contato com o suporte.';
                     document.getElementById('login-error-box').classList.remove('hidden');
                     showToast('Acesso negado para este usuário.', 'error');
                     return;
@@ -203,7 +156,6 @@
             renderLoginView();
         }
 
-        // --- STREAMING_CHUNK: Desenhando interface e tela de autenticação ---
         function renderLoginView() {
             const viewport = document.getElementById('app-viewport');
             viewport.className = "min-h-screen bg-slate-900 flex items-center justify-center p-4";
@@ -214,466 +166,206 @@
                             ${getIcon('calculator', 'w-9 h-9')}
                         </div>
                         <h1 class="text-2xl font-bold text-white">Calculadora Inteligente</h1>
-                        <p class="text-slate-400 text-sm mt-1">Plataforma SaaS Integrada de Precificação & Impostos</p>
+                        <p class="text-slate-400 text-sm mt-1">Plataforma SaaS de Precificação & Impostos</p>
                     </div>
 
                     <form onsubmit="handleLogin(event)" class="p-8 space-y-6">
-                        <div id="login-error-box" class="hidden flex items-start gap-2.5 p-3.5 bg-red-900/40 border border-red-500/30 text-red-300 rounded-xl text-xs leading-relaxed">
-                            <span class="mt-0.5 shrink-0">${getIcon('shield-alert', 'w-4.5 h-4.5 text-red-400')}</span>
+                        <div id="login-error-box" class="hidden flex items-start gap-2.5 p-3.5 bg-red-900/40 border border-red-500/30 text-red-300 rounded-xl text-xs">
+                            <span class="mt-0.5">${getIcon('shield-alert', 'w-4.5 h-4.5 text-red-400')}</span>
                             <span id="login-error-msg"></span>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Usuário / Login</label>
-                            <input id="login-username" type="text" required class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" placeholder="Insira seu login">
+                            <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Usuário</label>
+                            <input id="login-username" type="text" required placeholder="Ex: 123" class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white focus:outline-none">
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Senha Secreta</label>
-                            <input id="login-password" type="password" required class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" placeholder="Insira sua senha">
+                            <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Senha</label>
+                            <input id="login-password" type="password" required placeholder="Ex: 123" class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white focus:outline-none">
                         </div>
 
-                        <button type="submit" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2">
-                            Acessar Sistema
-                            ${getIcon('chevron-right', 'w-4.5 h-4.5')}
+                        <button type="submit" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg flex items-center justify-center gap-2">
+                            Acessar ${getIcon('chevron-right', 'w-4.5 h-4.5')}
                         </button>
                     </form>
 
                     <div class="p-6 bg-slate-900/60 border-t border-slate-700 text-xs text-slate-400 space-y-2">
                         <p class="font-semibold text-slate-300 flex items-center gap-1.5">
-                            ${getIcon('help-circle', 'w-3.5 h-3.5 text-indigo-400')}
-                            Acessos de Demonstração para Testes:
+                            ${getIcon('help-circle', 'w-3.5 h-3.5 text-indigo-400')} Dicas de Acesso:
                         </p>
-                        <ul class="space-y-1 list-disc list-inside">
-                            <li><strong class="text-indigo-400">ADM Geral:</strong> Login <code class="bg-slate-800 px-1 rounded text-white">123</code> | senha <code class="bg-slate-800 px-1 rounded text-white">123</code></li>
-                            <li><strong class="text-indigo-400">Simples Nac:</strong> Login <code class="bg-slate-800 px-1 rounded text-white">joao_simples</code> | senha <code class="bg-slate-800 px-1 rounded text-white">123</code></li>
-                            <li><strong class="text-indigo-400">Lucro Real:</strong> Login <code class="bg-slate-800 px-1 rounded text-white">maria_real</code> | senha <code class="bg-slate-800 px-1 rounded text-white">123</code></li>
+                        <ul class="space-y-1 list-disc list-inside text-[11px]">
+                            <li><strong>ADM:</strong> 123 / 123</li>
+                            <li><strong>Simples:</strong> joao_simples / 123</li>
+                            <li><strong>Real:</strong> maria_real / 123</li>
                         </ul>
                     </div>
                 </div>
             `;
         }
 
-        // --- STREAMING_CHUNK: Montando estrutura base da área logada (Layout Principal) ---
         function renderMainLayout() {
             const viewport = document.getElementById('app-viewport');
-            viewport.className = "min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans";
-            
+            viewport.className = "min-h-screen bg-slate-950 text-slate-100 flex flex-col";
             const taxDetails = getTaxRates(state.currentUser.regime);
 
             viewport.innerHTML = `
-                <!-- HEADER DA PLATAFORMA -->
-                <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 sticky top-0 z-40 shadow-lg">
+                <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 sticky top-0 z-40">
                     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-                        
                         <div class="flex items-center gap-3">
-                            <div class="p-2 bg-indigo-600 text-white rounded-xl shadow-md">
-                                ${getIcon('calculator', 'w-6 h-6')}
-                            </div>
+                            <div class="p-2 bg-indigo-600 text-white rounded-xl">${getIcon('calculator', 'w-6 h-6')}</div>
                             <div>
-                                <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                                    SaaS CalcPrecificar
-                                    <span class="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 text-[10px] uppercase font-bold rounded-full border border-indigo-500/20">HTML-v2</span>
-                                </h1>
-                                <p class="text-slate-400 text-xs">Simulador e Gestor Tributário de Margens</p>
+                                <h1 class="text-lg font-bold text-white">SaaS CalcPrecificar</h1>
+                                <p class="text-slate-400 text-xs">Simulador Tributário</p>
                             </div>
                         </div>
 
-                        <!-- ABAS DE NAVEGAÇÃO -->
                         <div class="flex items-center flex-wrap gap-2">
-                            <button onclick="switchTab('pricing')" id="tab-pricing-btn" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow-md">
-                                ${getIcon('calculator', 'w-4 h-4')}
-                                Precificação Inteligente
+                            <button onclick="switchTab('pricing')" id="tab-pricing-btn" class="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white">
+                                ${getIcon('calculator', 'w-4 h-4')} Precificação
                             </button>
-                            <button onclick="switchTab('history')" id="tab-history-btn" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
-                                ${getIcon('history', 'w-4 h-4')}
-                                Histórico de XMLs
+                            <button onclick="switchTab('history')" id="tab-history-btn" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:bg-slate-800">
+                                ${getIcon('history', 'w-4 h-4')} Histórico
                             </button>
-                            <button onclick="switchTab('admin_config')" id="tab-admin-btn" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 text-slate-400 hover:text-emerald-400 hover:bg-emerald-950/20">
-                                ${getIcon('settings', 'w-4 h-4')}
-                                Controle de Acessos
-                                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                            <button onclick="switchTab('admin_config')" id="tab-admin-btn" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:bg-slate-800">
+                                ${getIcon('settings', 'w-4 h-4')} Admin
                             </button>
                         </div>
 
-                        <!-- USER BAR -->
-                        <div class="flex items-center gap-4 bg-slate-950/60 py-1.5 pl-3.5 pr-2 rounded-xl border border-slate-800">
+                        <div class="flex items-center gap-4 bg-slate-950/60 py-1.5 pl-3.5 pr-2 rounded-xl">
                             <div class="text-right">
                                 <span class="block text-xs font-bold text-white">${state.currentUser.nome}</span>
-                                <span class="inline-flex items-center gap-1 text-[10px] text-indigo-400 font-mono font-bold uppercase">
-                                    ${getIcon('briefcase', 'w-2.5 h-2.5')}
-                                    Regime: ${state.currentUser.regime}
-                                </span>
+                                <span class="text-[10px] text-indigo-400">${state.currentUser.regime}</span>
                             </div>
-                            <button onclick="handleLogout()" class="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all" title="Sair do Sistema">
+                            <button onclick="handleLogout()" class="p-2 text-slate-400 hover:text-red-400">
                                 ${getIcon('log-out', 'w-4 h-4')}
                             </button>
                         </div>
-
                     </div>
                 </header>
 
-                <!-- PAINEL CENTRAL DE CONTEÚDO -->
                 <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
-                    
-                    <!-- WIDGET DE RESUMO DE ALÍQUOTAS -->
-                    <div class="p-4 bg-gradient-to-r from-slate-900 to-indigo-950 border border-indigo-500/20 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-md">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="p-1 bg-indigo-500/10 text-indigo-400 rounded-lg text-xs font-bold">Simulação Ativa</span>
-                                <h2 class="text-sm font-bold text-slate-100">Cenário Tributário Aplicado ao Preço de Venda</h2>
+                    <div class="p-4 bg-gradient-to-r from-slate-900 to-indigo-950 border border-indigo-500/20 rounded-2xl">
+                        <h2 class="text-sm font-bold mb-3">Cenário Tributário Ativo</h2>
+                        <div class="grid grid-cols-4 gap-3 bg-slate-950/60 p-3 rounded-xl">
+                            <div class="text-center">
+                                <span class="text-[10px] text-slate-500">PIS</span>
+                                <span class="text-xs font-bold text-indigo-300">${(taxDetails.pis * 100).toFixed(2)}%</span>
                             </div>
-                            <p class="text-xs text-slate-400">
-                                Cada produto calcula o imposto com base nas regras do <strong class="text-indigo-300 font-semibold">${state.currentUser.regime}</strong>.
-                            </p>
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800 w-full md:w-auto">
-                            <div class="text-center px-3">
-                                <span class="block text-[10px] uppercase text-slate-500 font-bold">PIS</span>
-                                <span class="text-xs font-mono font-bold text-indigo-300">${(taxDetails.pis * 100).toFixed(2)}%</span>
+                            <div class="text-center border-l border-slate-800">
+                                <span class="text-[10px] text-slate-500">COFINS</span>
+                                <span class="text-xs font-bold text-indigo-300">${(taxDetails.cofins * 100).toFixed(2)}%</span>
                             </div>
-                            <div class="text-center px-3 border-l border-slate-800">
-                                <span class="block text-[10px] uppercase text-slate-500 font-bold">COFINS</span>
-                                <span class="text-xs font-mono font-bold text-indigo-300">${(taxDetails.cofins * 100).toFixed(2)}%</span>
+                            <div class="text-center border-l border-slate-800">
+                                <span class="text-[10px] text-slate-500">IR/CSLL</span>
+                                <span class="text-xs font-bold text-indigo-300">${(taxDetails.irpjcsll * 100).toFixed(2)}%</span>
                             </div>
-                            <div class="text-center px-3 border-l border-slate-800">
-                                <span class="block text-[10px] uppercase text-slate-500 font-bold">IRPJ/CSLL</span>
-                                <span class="text-xs font-mono font-bold text-indigo-300">${(taxDetails.irpjcsll * 100).toFixed(2)}%</span>
-                            </div>
-                            <div class="text-center px-3 border-l border-slate-800">
-                                <span class="block text-[10px] uppercase text-slate-500 font-bold">ICMS Interno</span>
-                                <span class="text-xs font-mono font-bold text-indigo-300">${(taxDetails.icms * 100).toFixed(2)}%</span>
+                            <div class="text-center border-l border-slate-800">
+                                <span class="text-[10px] text-slate-500">ICMS</span>
+                                <span class="text-xs font-bold text-indigo-300">${(taxDetails.icms * 100).toFixed(2)}%</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- DIVS DE CONTEÚDO DAS ABAS -->
                     <div id="tab-pricing-content" class="space-y-6"></div>
                     <div id="tab-history-content" class="space-y-6 hidden"></div>
                     <div id="tab-admin-content" class="space-y-6 hidden"></div>
-
                 </main>
 
-                <!-- FOOTER -->
                 <footer class="bg-slate-900 border-t border-slate-800 py-4 px-6 text-center text-xs text-slate-500">
-                    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-                        <span>© 2026 SaaS CalcPrecificar. Todos os direitos reservados.</span>
-                        <span class="text-slate-400">
-                            Regime Ativo na Sessão: <strong class="text-indigo-400">${state.currentUser.regime}</strong>
-                        </span>
-                    </div>
+                    <span>© 2026 SaaS CalcPrecificar | Regime: ${state.currentUser.regime}</span>
                 </footer>
             `;
             switchTab(state.activeTab);
         }
 
-        // --- STREAMING_CHUNK: Sistema dinâmico para alternar abas da aplicação ---
         function switchTab(tabId) {
             state.activeTab = tabId;
-            
-            const tabs = ['pricing', 'history', 'admin'];
-            tabs.forEach(t => {
+            ['pricing', 'history', 'admin'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}-btn`);
                 const content = document.getElementById(`tab-${t}-content`);
-                
                 if (btn) {
                     if (t === tabId || (t === 'admin' && tabId === 'admin_config')) {
-                        btn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow-md";
+                        btn.className = "px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white flex items-center gap-1.5";
                         if (content) content.classList.remove('hidden');
                     } else {
-                        btn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800";
+                        btn.className = "px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:bg-slate-800 flex items-center gap-1.5";
                         if (content) content.classList.add('hidden');
                     }
                 }
             });
-
             if (tabId === 'pricing') renderPricingTab();
             if (tabId === 'history') renderHistoryTab();
             if (tabId === 'admin_config') renderAdminTab();
         }
 
-        // --- STREAMING_CHUNK: Gerando tela e componentes de precificação de produtos ---
         function renderPricingTab() {
             const container = document.getElementById('tab-pricing-content');
-            
             const totalItems = state.products.length;
             const processedCount = state.products.filter(p => p.isProcessed).length;
-            const pendingCount = totalItems - processedCount;
-            const totalCost = state.products.reduce((acc, curr) => acc + (curr.unitCost * curr.qty), 0);
+            const totalCost = state.products.reduce((acc, p) => acc + (p.unitCost * p.qty), 0);
 
             container.innerHTML = `
-                <!-- GRID DE TOTALIZADORES -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs font-bold text-slate-400 uppercase">Total na Lista</span>
-                            <span class="text-2xl font-bold font-mono text-white mt-1">${totalItems}</span>
-                        </div>
-                        <div class="p-3 bg-slate-950 text-slate-400 rounded-xl">
-                            ${getIcon('database', 'w-5 h-5')}
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs font-bold text-slate-400 uppercase">Pendentes de Preço</span>
-                            <span class="text-2xl font-bold font-mono text-amber-400 mt-1">${pendingCount}</span>
-                        </div>
-                        <div class="p-3 bg-slate-950 text-amber-400 rounded-xl">
-                            ${getIcon('alert-circle', 'w-5 h-5')}
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs font-bold text-slate-400 uppercase">Itens Salvos (Azul)</span>
-                            <span class="text-2xl font-bold font-mono text-sky-400 mt-1">${processedCount}</span>
-                        </div>
-                        <div class="p-3 bg-slate-950 text-sky-400 rounded-xl">
-                            ${getIcon('check-circle-2', 'w-5 h-5')}
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs font-bold text-slate-400 uppercase">Custo Total da Lista</span>
-                            <span class="text-xl font-bold font-mono text-emerald-400 mt-1">
-                                R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </span>
-                        </div>
-                        <div class="p-3 bg-slate-950 text-emerald-400 rounded-xl">
-                            ${getIcon('dollar-sign', 'w-5 h-5')}
-                        </div>
-                    </div>
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><span class="text-xs text-slate-400">Total</span><span class="text-2xl font-bold">${totalItems}</span></div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><span class="text-xs text-slate-400">Pendentes</span><span class="text-2xl font-bold text-amber-400">${totalItems - processedCount}</span></div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><span class="text-xs text-slate-400">Salvos</span><span class="text-2xl font-bold text-sky-400">${processedCount}</span></div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><span class="text-xs text-slate-400">Custo Total</span><span class="text-xl font-bold text-emerald-400">R$ ${totalCost.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>
                 </div>
 
-                <!-- SEÇÃO ENTRADA / UPLOADS / CADASTRO MANUAL -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- BOX ENTRADA XML -->
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between space-y-4">
-                        <div>
-                            <h3 class="text-base font-bold text-white flex items-center gap-1.5 mb-1.5">
-                                ${getIcon('upload', 'w-4.5 h-4.5 text-indigo-400')}
-                                Importador XML de Notas Fiscais
-                            </h3>
-                            <p class="text-xs text-slate-400">
-                                Insira arquivos XML (NFe oficial) para carregar os produtos, NCMs e custos automaticamente.
-                            </p>
-                        </div>
-
-                        <div class="space-y-3">
-                            <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-6 text-center cursor-pointer transition-colors relative bg-slate-950/40">
-                                <input type="file" accept=".xml" onchange="handleXmlUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                <span class="block mb-2 text-slate-500">${getIcon('file-text', 'w-8 h-8 mx-auto')}</span>
-                                <span class="block text-xs font-bold text-slate-300">Escolha um XML Real</span>
-                                <span class="block text-[10px] text-slate-500 mt-0.5">Clique para buscar ou arraste</span>
-                            </div>
-
-                            <div class="relative flex py-2 items-center text-xs">
-                                <div class="flex-grow border-t border-slate-800"></div>
-                                <span class="flex-shrink mx-3 text-slate-500 uppercase font-bold text-[10px]">ou teste rápido</span>
-                                <div class="flex-grow border-t border-slate-800"></div>
-                            </div>
-
-                            <button onclick="handleGenerateSampleXml()" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-indigo-400 flex items-center justify-center gap-2">
-                                <span class="animate-spin-slow">${getIcon('refresh-cw', 'w-3.5 h-3.5')}</span>
-                                Gerar XML e Testar Agora!
-                            </button>
-                        </div>
+                <form onsubmit="handleAddManualProduct(event)" class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
+                    <h3 class="text-base font-bold">Adicionar Produto</h3>
+                    <div class="grid grid-cols-5 gap-3">
+                        <input id="manual-name" type="text" required placeholder="Nome" class="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                        <input id="manual-ncm" type="text" placeholder="NCM" class="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                        <input id="manual-qty" type="number" value="1" required class="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                        <input id="manual-cost" type="number" step="0.01" required placeholder="Custo" class="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                        <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white font-semibold">Adicionar</button>
                     </div>
+                </form>
 
-                    <!-- CADASTRO MANUAL -->
-                    <form onsubmit="handleAddManualProduct(event)" class="bg-slate-900 border border-slate-800 p-5 rounded-2xl col-span-2 space-y-4">
-                        <h3 class="text-base font-bold text-white flex items-center gap-1.5">
-                            ${getIcon('user-plus', 'w-4.5 h-4.5 text-indigo-400')}
-                            Cadastro Unitário e Manual de Itens
-                        </h3>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
-                            <div class="sm:col-span-5">
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5">Descrição do Produto</label>
-                                <input id="manual-name" type="text" required placeholder="Ex: Óleo de Milho Tipo A" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                            </div>
-
-                            <div class="sm:col-span-3">
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5">NCM do Item</label>
-                                <input id="manual-ncm" type="text" placeholder="Ex: 15071000" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5">Qtd Compra</label>
-                                <input id="manual-qty" type="number" min="1" value="1" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1.5">Custo Un. (R$)</label>
-                                <input id="manual-cost" type="number" step="0.01" min="0.01" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                            <div class="flex items-center gap-3">
-                                <div class="w-48">
-                                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Margem: <strong id="margin-lbl" class="text-indigo-400">30%</strong></label>
-                                    <input id="manual-margin" type="range" min="5" max="80" value="30" oninput="document.getElementById('margin-lbl').innerText = this.value + '%'" class="w-full accent-indigo-500">
-                                </div>
-                                <span class="text-[10px] text-slate-500 leading-tight">Define o retorno líquido desejado após o imposto.</span>
-                            </div>
-
-                            <button type="submit" class="w-full sm:w-auto py-2 px-5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-semibold text-white shadow-lg shadow-indigo-600/10">
-                                Adicionar Produto
-                            </button>
-                        </div>
-                    </form>
-
-                </div>
-
-                <!-- TABELA DE PRODUTOS PARA PRECIFICAÇÃO -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-                    <div class="p-4 md:p-5 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/40">
-                        <div>
-                            <h3 class="text-base font-bold text-white">Calculadora Ativa da Nota</h3>
-                            <p class="text-xs text-slate-400">Altere as margens individuais para atualizar o preço sugerido na prateleira.</p>
-                        </div>
-
-                        <div class="relative w-full md:w-80">
-                            <input id="search-prod-input" oninput="handleSearchProducts(this.value)" type="text" placeholder="Pesquisar por nome ou NCM..." class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
-                            <span class="absolute left-3 top-2.5 text-slate-500">${getIcon('search', 'w-4 h-4')}</span>
-                        </div>
-                    </div>
-
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="bg-slate-950 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                                    <th class="py-3 px-4 text-center w-12">Fase</th>
-                                    <th class="py-3 px-4 text-left">Especificação do Produto</th>
-                                    <th class="py-3 px-4 text-center">NCM</th>
-                                    <th class="py-3 px-4 text-center">Qtd</th>
-                                    <th class="py-3 px-4 text-right">Custo Unitário</th>
-                                    <th class="py-3 px-4 text-center w-40">Margem Desejada (%)</th>
-                                    <th class="py-3 px-4 text-right">Alíquota</th>
-                                    <th class="py-3 px-4 text-center">Markup</th>
-                                    <th class="py-3 px-4 text-right">Preço Sugerido</th>
-                                    <th class="py-3 px-4 text-center w-28">Ações</th>
+                        <table class="w-full">
+                            <thead class="bg-slate-950 border-b border-slate-800">
+                                <tr class="text-left text-[10px] font-bold text-slate-400 uppercase">
+                                    <th class="py-3 px-4">Produto</th><th class="py-3 px-4">NCM</th><th class="py-3 px-4">Qtd</th>
+                                    <th class="py-3 px-4">Custo</th><th class="py-3 px-4">Margem</th><th class="py-3 px-4">Preço</th><th class="py-3 px-4">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="product-table-body">
-                                <!-- Preenchido dinamicamente via JS -->
-                            </tbody>
+                            <tbody id="product-table-body"></tbody>
                         </table>
                     </div>
                 </div>
             `;
-            document.getElementById('search-prod-input').value = state.searchQuery;
             renderProductRows();
         }
 
-        // --- STREAMING_CHUNK: Processando e listando dinamicamente linhas de produtos ---
         function renderProductRows() {
             const tableBody = document.getElementById('product-table-body');
             const taxDetails = getTaxRates(state.currentUser.regime);
-
-            const filtered = state.products.filter(p => 
-                p.name.toLowerCase().includes(state.searchQuery.toLowerCase()) || p.ncm.includes(state.searchQuery)
-            );
-
-            if (filtered.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="10" class="py-8 text-center text-slate-500 text-sm">
-                            Nenhum produto cadastrado ou importado nesta sessão.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+            const filtered = state.products.filter(p => p.name.toLowerCase().includes(state.searchQuery.toLowerCase()) || p.ncm.includes(state.searchQuery));
 
             tableBody.innerHTML = filtered.map(p => {
                 const res = calculatePrice(p.unitCost, p.margin);
-                const rowClass = p.isProcessed 
-                    ? 'bg-sky-950/20 border-l-4 border-l-sky-500 hover:bg-sky-950/30' 
-                    : 'hover:bg-slate-800/40';
-
                 return `
-                    <tr class="border-b border-slate-800 text-sm transition-colors ${rowClass}">
-                        <td class="py-3.5 px-4 text-center">
-                            <button onclick="toggleProductProcessed('${p.id}')" class="p-1.5 rounded-lg border transition-all ${
-                                p.isProcessed 
-                                    ? 'bg-sky-500 border-sky-400 text-slate-900' 
-                                    : 'border-slate-700 text-slate-500 hover:border-slate-500 hover:text-white'
-                            }">
-                                ${getIcon('check', 'w-3.5 h-3.5')}
-                            </button>
-                        </td>
-                        <td class="py-3.5 px-4">
-                            <span class="block font-semibold text-white leading-tight">${p.name}</span>
-                            <span class="text-[10px] text-slate-500 font-mono">ID: ${p.id}</span>
-                        </td>
-                        <td class="py-3.5 px-4 text-center font-mono text-xs text-slate-300">${p.ncm}</td>
-                        <td class="py-3.5 px-4 text-center font-bold text-slate-200">${p.qty}</td>
-                        <td class="py-3.5 px-4 text-right font-mono text-slate-200">R$ ${p.unitCost.toFixed(2)}</td>
-                        <td class="py-3.5 px-4 text-center">
-                            <div class="flex items-center gap-2 justify-center">
-                                <input type="range" min="5" max="80" value="${p.margin}" oninput="updateMarginDirect('${p.id}', this.value)" class="w-20 accent-indigo-500">
-                                <span class="w-10 text-xs font-bold font-mono text-indigo-400 text-right">${p.margin}%</span>
-                            </div>
-                        </td>
-                        <td class="py-3.5 px-4 text-right">
-                            <span class="block font-mono text-slate-300">${(taxDetails.total * 100).toFixed(2)}%</span>
-                        </td>
-                        <td class="py-3.5 px-4 text-center">
-                            <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold rounded font-mono">${res.markup.toFixed(4)}x</span>
-                        </td>
-                        <td class="py-3.5 px-4 text-right font-bold text-emerald-400 font-mono text-base">
-                            R$ ${res.suggestedPrice.toFixed(2)}
-                        </td>
-                        <td class="py-3.5 px-4 text-center">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <button onclick="toggleProductProcessed('${p.id}')" class="px-2 py-1 text-xs font-bold rounded-lg ${
-                                    p.isProcessed 
-                                        ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20' 
-                                        : 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                                }">
-                                    ${p.isProcessed ? 'Reabrir' : 'Aprovar'}
-                                </button>
-                                <button onclick="deleteProduct('${p.id}')" class="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg">
-                                    ${getIcon('trash-2', 'w-4 h-4')}
-                                </button>
-                            </div>
-                        </td>
+                    <tr class="border-b border-slate-800 hover:bg-slate-800/30 text-sm">
+                        <td class="py-3 px-4"><span class="font-semibold">${p.name}</span></td>
+                        <td class="py-3 px-4 font-mono">${p.ncm}</td>
+                        <td class="py-3 px-4">${p.qty}</td>
+                        <td class="py-3 px-4">R$ ${p.unitCost.toFixed(2)}</td>
+                        <td class="py-3 px-4"><input type="range" min="5" max="80" value="${p.margin}" oninput="updateMargin('${p.id}', this.value)" class="w-20 accent-indigo-500"></td>
+                        <td class="py-3 px-4 font-bold text-emerald-400">R$ ${res.suggestedPrice.toFixed(2)}</td>
+                        <td class="py-3 px-4"><button onclick="deleteProduct('${p.id}')" class="text-red-400 hover:text-red-300">${getIcon('trash-2', 'w-4 h-4')}</button></td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function handleSearchProducts(query) {
-            state.searchQuery = query;
-            renderProductRows();
-        }
-
-        function updateMarginDirect(productId, val) {
-            state.products = state.products.map(p => {
-                if (p.id === productId) {
-                    return { ...p, margin: Number(val) };
-                }
-                return p;
-            });
+        function updateMargin(id, val) {
+            state.products = state.products.map(p => p.id === id ? {...p, margin: Number(val)} : p);
             saveToStorage();
             renderProductRows();
-        }
-
-        function toggleProductProcessed(id) {
-            state.products = state.products.map(p => {
-                if (p.id === id) {
-                    return { ...p, isProcessed: !p.isProcessed };
-                }
-                return p;
-            });
-            saveToStorage();
-            showToast('Fase de precificação do produto atualizada!');
-            renderPricingTab();
         }
 
         function deleteProduct(id) {
@@ -689,293 +381,68 @@
             const ncm = document.getElementById('manual-ncm').value || '00000000';
             const qty = Number(document.getElementById('manual-qty').value);
             const cost = Number(document.getElementById('manual-cost').value);
-            const margin = Number(document.getElementById('manual-margin').value);
 
             if (!name || cost <= 0) {
-                showToast('Preencha os campos obrigatórios.', 'error');
+                showToast('Preencha os campos.', 'error');
                 return;
             }
 
-            const item = {
-                id: 'p_manual_' + Date.now(),
-                name,
-                ncm,
-                qty,
+            state.products.unshift({
+                id: 'p_' + Date.now(),
+                name, ncm, qty,
                 unitCost: cost,
-                margin,
+                margin: 30,
                 isProcessed: false
-            };
-
-            state.products.unshift(item);
+            });
             saveToStorage();
-            showToast('Produto cadastrado com sucesso!');
+            showToast('Produto adicionado!');
+            document.getElementById('manual-name').value = '';
             renderPricingTab();
         }
 
-        // --- STREAMING_CHUNK: Leitor Real e Parser de Nota Fiscal Eletrônica XML ---
-        function handleXmlUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const xmlText = e.target.result;
-                parseXmlNFe(xmlText, file.name);
-            };
-            reader.readAsText(file);
-        }
-
-        function parseXmlNFe(xmlText, fileName) {
-            try {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                
-                const detElements = xmlDoc.getElementsByTagName('det');
-                const emitElement = xmlDoc.getElementsByTagName('emit')[0];
-                const emitNome = emitElement ? emitElement.getElementsByTagName('xNome')[0]?.textContent : 'Fornecedor XML';
-
-                if (detElements.length === 0) {
-                    throw new Error('Nenhum elemento det encontrado');
-                }
-
-                let totalCostSum = 0;
-                const parsedProducts = [];
-
-                for (let i = 0; i < detElements.length; i++) {
-                    const prodElement = detElements[i].getElementsByTagName('prod')[0];
-                    if (prodElement) {
-                        const name = prodElement.getElementsByTagName('xProd')[0]?.textContent || `Insumo XML ${i + 1}`;
-                        const ncm = prodElement.getElementsByTagName('NCM')[0]?.textContent || '00000000';
-                        const qty = Number(prodElement.getElementsByTagName('qCom')[0]?.textContent || 1);
-                        const unitCost = Number(prodElement.getElementsByTagName('vUnCom')[0]?.textContent || 0);
-
-                        totalCostSum += (unitCost * qty);
-
-                        parsedProducts.push({
-                            id: `xml_${Date.now()}_${i}`,
-                            name,
-                            ncm,
-                            qty,
-                            unitCost,
-                            margin: 30,
-                            isProcessed: false
-                        });
-                    }
-                }
-
-                state.products = [...parsedProducts, ...state.products];
-
-                const historyItem = {
-                    id: `h_upload_${Date.now()}`,
-                    fileName,
-                    date: new Date().toLocaleDateString('pt-BR'),
-                    itemsCount: parsedProducts.length,
-                    totalCost: totalCostSum,
-                    supplier: emitNome
-                };
-                state.history.unshift(historyItem);
-                
-                saveToStorage();
-                showToast(`XML Processado! ${parsedProducts.length} itens importados.`);
-                renderPricingTab();
-            } catch(e) {
-                showToast('Erro ao ler arquivo XML de Nota Fiscal.', 'error');
-            }
-        }
-
-        function handleGenerateSampleXml() {
-            const sampleXml = `<?xml version="1.0" encoding="UTF-8"?>
-            <nfeProc xmlns="http://www.portalfiscal.inf.br/nfe">
-              <NFe>
-                <infNFe>
-                  <emit>
-                    <xNome>Distribuidora Alimentos Rondônia S/A</xNome>
-                  </emit>
-                  <det nItem="1">
-                    <prod>
-                      <xProd>Feijão Carioca Premium 1kg</xProd>
-                      <NCM>07133319</NCM>
-                      <qCom>100</qCom>
-                      <vUnCom>6.85</vUnCom>
-                    </prod>
-                  </det>
-                  <det nItem="2">
-                    <prod>
-                      <xProd>Macarrão Espaguete Sêmola 500g</xProd>
-                      <NCM>19021900</NCM>
-                      <qCom>150</qCom>
-                      <vUnCom>3.25</vUnCom>
-                    </prod>
-                  </det>
-                  <det nItem="3">
-                    <prod>
-                      <xProd>Óleo de Soja Pet 900ml</xProd>
-                      <NCM>15071000</NCM>
-                      <qCom>80</qCom>
-                      <vUnCom>5.40</vUnCom>
-                    </prod>
-                  </det>
-                </infNFe>
-              </NFe>
-            </nfeProc>`;
-
-            parseXmlNFe(sampleXml, 'nfe_simulada_comercio_compras.xml');
-        }
-
-        // --- STREAMING_CHUNK: Desenhando aba de histórico de notas importadas ---
         function renderHistoryTab() {
             const container = document.getElementById('tab-history-content');
-            container.innerHTML = `
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden space-y-4">
-                    <div class="p-5 border-b border-slate-800 bg-slate-900/40">
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <span class="text-indigo-400">${getIcon('history', 'w-5 h-5')}</span>
-                            Histórico de Uploads e Importações de XML
-                        </h3>
-                        <p class="text-xs text-slate-400">Auditoria completa de notas fiscais que deram entrada no sistema de precificação do ERP/PDV.</p>
+            container.innerHTML = `<div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                <h3 class="text-base font-bold mb-4">Histórico de Uploads</h3>
+                <div id="history-grid" class="grid grid-cols-3 gap-4"></div>
+            </div>`;
+            
+            const grid = document.getElementById('history-grid');
+            grid.innerHTML = state.history.length === 0 ? '<p class="col-span-3 text-center text-slate-500">Nenhum histórico</p>' :
+                state.history.map(h => `
+                    <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                        <div class="text-xs text-slate-500 mb-2">${h.date}</div>
+                        <h4 class="text-sm font-semibold mb-2">${h.fileName}</h4>
+                        <p class="text-xs text-indigo-300 mb-3">Fornecedor: ${h.supplier}</p>
+                        <div class="text-xs text-slate-400">Itens: <strong>${h.itemsCount}</strong> | Valor: <strong class="text-emerald-400">R$ ${h.totalCost.toFixed(2)}</strong></div>
                     </div>
-
-                    <div class="p-5">
-                        <div id="history-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <!-- Injetado dinamicamente via JS -->
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            const cardsGrid = document.getElementById('history-cards-grid');
-            if (state.history.length === 0) {
-                cardsGrid.innerHTML = `<p class="col-span-full text-center text-slate-500 text-sm">Nenhum histórico disponível.</p>`;
-                return;
-            }
-
-            cardsGrid.innerHTML = state.history.map(h => `
-                <div class="p-4 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl space-y-3 shadow-md transition-all">
-                    <div class="flex items-start justify-between">
-                        <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">
-                            ${getIcon('file-text', 'w-4.5 h-4.5')}
-                        </div>
-                        <span class="text-[10px] text-slate-500 font-bold">${h.date}</span>
-                    </div>
-
-                    <div class="space-y-1">
-                        <h4 class="text-sm font-semibold text-white truncate" title="${h.fileName}">${h.fileName}</h4>
-                        <p class="text-xs text-indigo-300 font-medium">Fornecedor: ${h.supplier}</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 pt-2 border-t border-slate-800/80 text-xs">
-                        <div>
-                            <span class="block text-slate-500 font-semibold text-[9px] uppercase">Itens na Nota</span>
-                            <span class="font-mono text-white font-bold">${h.itemsCount} itens</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="block text-slate-500 font-semibold text-[9px] uppercase">Valor Total</span>
-                            <span class="font-mono text-emerald-400 font-bold">R$ ${h.totalCost.toFixed(2)}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
         }
 
-        // --- STREAMING_CHUNK: Desenhando aba administrativa para sincronizar com planilha ---
         function renderAdminTab() {
             const container = document.getElementById('tab-admin-content');
             container.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- CADASTRO DE EMPRESA -->
-                    <form onsubmit="handleCreateUser(event)" class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
-                        <div>
-                            <h3 class="text-base font-bold text-white flex items-center gap-1.5">
-                                <span class="text-emerald-400">${getIcon('user-plus', 'w-4.5 h-4.5')}</span>
-                                Novo Cadastro de Patrão/Empresa
-                            </h3>
-                            <p class="text-xs text-slate-400 mt-1">
-                                Insira novos usuários no banco de dados sincronizado. O sistema concederá acesso apenas se o token de liberação estiver "OK".
-                            </p>
-                        </div>
+                <form onsubmit="handleCreateUser(event)" class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
+                    <h3 class="text-base font-bold">Novo Usuário</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input id="new-user-nome" type="text" required placeholder="Empresa" class="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                        <input id="new-user-login" type="text" required placeholder="Login" class="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                        <input id="new-user-senha" type="password" required placeholder="Senha" class="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                        <select id="new-user-regime" class="px-2.5 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                            <option>Simples Nacional</option><option>Lucro Presumido</option><option>Lucro Real</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-semibold">Cadastrar</button>
+                </form>
 
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nome Fantasia / Empresa</label>
-                                <input id="new-user-nome" type="text" required placeholder="Ex: Armazém Silva Eireli" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500">
-                            </div>
-
-                            <div>
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Login (Nome de Usuário)</label>
-                                <input id="new-user-login" type="text" required placeholder="Ex: silva_comercio" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500">
-                            </div>
-
-                            <div>
-                                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Senha de Acesso</label>
-                                <input id="new-user-senha" type="password" required placeholder="Insira a senha do usuário" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Regime Fiscal</label>
-                                    <select id="new-user-regime" class="w-full px-2.5 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
-                                        <option value="Simples Nacional">Simples Nacional</option>
-                                        <option value="Lucro Presumido">Lucro Presumido</option>
-                                        <option value="Lucro Real">Lucro Real</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Token Status</label>
-                                    <select id="new-user-status" class="w-full px-2.5 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
-                                        <option value="OK">Ativo (OK)</option>
-                                        <option value="X">Bloqueado (X)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <button type="submit" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-xl shadow-lg">
-                                Cadastrar na Planilha
-                            </button>
-                        </div>
-                    </form>
-
-                    <!-- TABELA DE CONTROLE DOS LOGINS SINCRONIZADOS -->
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl lg:col-span-2 space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
-                            <div>
-                                <h3 class="text-base font-bold text-white flex items-center gap-1.5">
-                                    <span class="text-emerald-400">${getIcon('file-spreadsheet', 'w-4.5 h-4.5')}</span>
-                                    Simulador Planilha Google Sheets Sincronizada
-                                </h3>
-                                <p class="text-xs text-slate-400">Banco de Dados que valida a liberação de logins de clientes no SaaS.</p>
-                            </div>
-
-                            <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-                                <span class="text-emerald-400 animate-pulse">${getIcon('users', 'w-3 h-3')}</span>
-                                Sincronizado: Online
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto rounded-xl border border-slate-800">
-                            <table class="w-full border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-950 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800 text-left">
-                                        <th class="py-2.5 px-3">Empresa / Razão</th>
-                                        <th class="py-2.5 px-3">Login</th>
-                                        <th class="py-2.5 px-3">Senha</th>
-                                        <th class="py-2.5 px-3">Regime</th>
-                                        <th class="py-2.5 px-3 text-center">Status Acesso</th>
-                                        <th class="py-2.5 px-3 text-center">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="users-table-body" class="divide-y divide-slate-800 text-xs">
-                                    <!-- Preenchido via JS -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-400 leading-normal flex items-start gap-2.5">
-                            <span class="text-emerald-400 shrink-0 mt-0.5">${getIcon('alert-circle', 'w-4 h-4')}</span>
-                            <span>
-                                <strong>Aviso de Configuração Demo:</strong> Altere livremente o status de qualquer conta de teste de <strong>`OK`</strong> para <strong>`X`</strong> acima e tente logar com ela depois para constatar que o login será recusado com a validação dinâmica de acesso.
-                            </span>
-                        </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl 
+">
+                    <h3 class="text-base font-bold mb-4">Usuários Cadastrados</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-950 border-b border-slate-800"><tr class="text-left text-xs font-bold text-slate-400"><th class="py-2 px-3">Empresa</th><th class="py-2 px-3">Login</th><th class="py-2 px-3">Regime</th><th class="py-2 px-3">Status</th></tr></thead>
+                            <tbody id="users-table-body"></tbody>
+                        </table>
                     </div>
                 </div>
             `;
@@ -985,29 +452,11 @@
         function renderUsersRows() {
             const tableBody = document.getElementById('users-table-body');
             tableBody.innerHTML = state.users.map(u => `
-                <tr class="hover:bg-slate-800/30">
-                    <td class="py-2.5 px-3 font-semibold text-white">${u.nome}</td>
-                    <td class="py-2.5 px-3 font-mono text-emerald-400">${u.login}</td>
-                    <td class="py-2.5 px-3 font-mono text-slate-400">••••••••</td>
-                    <td class="py-2.5 px-3">
-                        <span class="px-2 py-0.5 bg-slate-950 border border-slate-800 text-slate-300 rounded font-semibold text-[10px]">
-                            ${u.regime}
-                        </span>
-                    </td>
-                    <td class="py-2.5 px-3 text-center">
-                        <button onclick="toggleUserStatus('${u.id}')" class="px-3 py-1 text-[10px] font-bold rounded-full transition-all ${
-                            u.status === 'OK' 
-                                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' 
-                                : 'bg-red-500/10 border border-red-500/20 text-red-400'
-                        }">
-                            ${u.status === 'OK' ? 'OK (Ativo)' : 'X (Bloqueado)'}
-                        </button>
-                    </td>
-                    <td class="py-2.5 px-3 text-center">
-                        <button onclick="deleteUser('${u.id}', '${u.login}')" class="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg">
-                            ${getIcon('trash-2', 'w-3.5 h-3.5')}
-                        </button>
-                    </td>
+                <tr class="border-b border-slate-800">
+                    <td class="py-2 px-3 font-semibold">${u.nome}</td>
+                    <td class="py-2 px-3 font-mono text-indigo-300">${u.login}</td>
+                    <td class="py-2 px-3 text-xs">${u.regime}</td>
+                    <td class="py-2 px-3"><span class="px-2 py-1 rounded text-xs font-bold ${u.status === 'OK' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}">${u.status}</span></td>
                 </tr>
             `).join('');
         }
@@ -1018,66 +467,23 @@
             const login = document.getElementById('new-user-login').value;
             const senha = document.getElementById('new-user-senha').value;
             const regime = document.getElementById('new-user-regime').value;
-            const status = document.getElementById('new-user-status').value;
 
-            if (!login || !senha || !nome) {
-                showToast('Preencha todos os campos.', 'error');
-                return;
-            }
-
-            const exists = state.users.some(u => u.login === login);
-            if (exists) {
-                showToast('Este login já existe na planilha!', 'error');
-                return;
-            }
-
-            const newUser = {
-                id: 'u_' + Date.now(),
-                nome,
-                login,
-                senha,
-                regime,
-                status
-            };
-
-            state.users.push(newUser);
-            saveToStorage();
-            showToast('Novo usuário cadastrado!');
-            renderAdminTab();
-        }
-
-        function toggleUserStatus(id) {
-            state.users = state.users.map(u => {
-                if (u.id == id || u.id === id) {
-                    if (u.login === state.currentUser.login && u.status === 'OK') {
-                        showToast('Você não pode desativar seu próprio usuário logado!', 'error');
-                        return u;
-                    }
-                    const newStatus = u.status === 'OK' ? 'X' : 'OK';
-                    showToast(`Status alterado para ${newStatus === 'OK' ? 'Ativo' : 'Bloqueado'}`);
-                    return { ...u, status: newStatus };
-                }
-                return u;
+            state.users.push({
+                id: state.users.length + 1,
+                login, senha, regime,
+                status: 'OK',
+                nome
             });
             saveToStorage();
-            renderAdminTab();
+            showToast('Usuário cadastrado!');
+            e.target.reset();
+            renderUsersRows();
         }
 
-        function deleteUser(id, login) {
-            if (login === '123') {
-                showToast('O administrador padrão demo não pode ser excluído.', 'error');
-                return;
-            }
-            state.users = state.users.filter(u => u.id != id);
-            saveToStorage();
-            showToast('Usuário removido da planilha.');
-            renderAdminTab();
-        }
-
-        // --- STREAMING_CHUNK: Acionando inicializador global onload do navegador ---
-        window.onload = function() {
+        // Inicializa a app
+        document.addEventListener('DOMContentLoaded', () => {
             renderLoginView();
-        }
+        });
     </script>
 </body>
 </html>
