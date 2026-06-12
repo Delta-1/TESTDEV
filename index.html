@@ -734,23 +734,6 @@
     </footer>
 
     <script>
-        // Variáveis globais do ecossistema do app
-        let localProducts = [];
-        let cart = [];
-        let currentTheme = 'light';
-        let currentPaymentMethod = 'a_vista';
-        let base64ImageToUpload = "";
-        let base64Logo = "";
-        let confirmPromiseResolver = null;
-
-        // Inicialização do Aplicativo
-        window.addEventListener('DOMContentLoaded', () => {
-            initTheme();
-            loadConfigurations();
-            syncData();
-            updateCalculations();
-        });
-
         // --- INSTALAÇÃO ATRAVÉS DO SERVICE WORKER NATIVO (GITHUB) ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -1134,7 +1117,7 @@
 
             if (!scriptUrl) {
                 finalizeEditView();
-                showToast("Dados do produto atualizados!");
+                showToast("Dados do produto updated!");
                 return;
             }
 
@@ -1149,10 +1132,10 @@
                     unit: unit
                 };
 
+                // Enviando como text/plain para blindar problemas de CORS na rota de atualização
                 await fetch(scriptUrl, {
                     method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify(apiBody)
                 });
 
@@ -1181,6 +1164,7 @@
             renderCategoryPills(localProducts);
         }
 
+        // CORREÇÃO CRÍTICA DO BUG DE EXCLUSÃO: Alterado para text/plain para garantir gravação real no Sheets
         function deleteProduct(code) {
             const product = localProducts.find(p => p.code === code);
             if (!product) return;
@@ -1206,10 +1190,10 @@
                         const scriptUrl = localStorage.getItem('loop_script_url');
                         if (scriptUrl) {
                             try {
+                                // Mudar para text/plain impede o bloqueio invisível de CORS no navegador
                                 await fetch(scriptUrl, {
                                     method: "POST",
-                                    mode: "no-cors",
-                                    headers: { "Content-Type": "application/json" },
+                                    headers: { "Content-Type": "text/plain" },
                                     body: JSON.stringify({ action: "delete", code: code })
                                 });
                                 showToast("Produto deletado da Planilha Google!");
@@ -1552,10 +1536,10 @@
                     imageBase64: base64ImageToUpload ? base64ImageToUpload.split(',')[1] : ""
                 };
 
+                // Enviando como text/plain para blindar problemas de CORS na rota de criação
                 await fetch(scriptUrl, {
                     method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify(apiBody)
                 });
 
