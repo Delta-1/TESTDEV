@@ -1,12 +1,13 @@
+```html
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>MonografiaAI - Pro Mobile</title>
+    <title>MonografiaAI - APA 7 & UPDS</title>
     
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -14,7 +15,7 @@
                 extend: { 
                     colors: { 
                         slate: { 850: '#151e2e', 900: '#0f172a' },
-                        primary: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' }
                     } 
                 } 
             }
@@ -22,11 +23,11 @@
     </script>
     
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="[https://unpkg.com/lucide@latest](https://unpkg.com/lucide@latest)"></script>
 
-    <!-- Estilos do Documento APA 7 / UPDS -->
+    <!-- Estilos Académicos e Layout A4 -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+        @import url('[https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap](https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap)');
 
         .hidden-state { display: none !important; }
 
@@ -36,7 +37,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
 
-        /* Container do Papel (Permite pan/zoom no mobile) */
+        /* Contentor A4 */
         .a4-container {
             background-color: #e2e8f0;
             padding: 1rem;
@@ -54,17 +55,18 @@
             .a4-container { padding: 2rem; }
         }
 
-        /* Página A4 Branca Constante */
+        /* Página A4 - Regras rigorosas APA 7 / UPDS */
         .a4-page {
             background: white !important;
             width: 210mm;
-            max-width: none; /* Força o tamanho real para manter o layout APA */
+            max-width: none; 
             min-height: 297mm;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            /* Margens: Esquerda 3cm (UPDS), Direita/Sup/Inf 2.54cm (APA) */
             padding: 2.54cm 2.54cm 2.54cm 3cm;
             font-family: 'Tinos', 'Times New Roman', Times, serif;
             font-size: 12pt;
-            line-height: 2; /* Espaçamento Duplo APA */
+            line-height: 2; /* Espaçamento duplo APA */
             color: black !important;
             position: relative;
             flex-shrink: 0;
@@ -72,14 +74,26 @@
             page-break-after: always;
         }
 
-        /* Regras de Texto Baseadas na APA 7ª Edição */
-        .a4-page p { text-indent: 1.27cm; margin-bottom: 0; text-align: justify; }
+        /* Tipografia e Parágrafos APA 7 */
+        .a4-page p { 
+            text-indent: 1.27cm; /* Sangria da 1ª linha de 1.27cm */
+            margin-bottom: 0; 
+            text-align: justify; 
+        }
+        
         .a4-page h1 { font-size: 12pt; font-weight: bold; text-align: center; margin-top: 24pt; margin-bottom: 12pt; text-indent: 0; }
         .a4-page h2 { font-size: 12pt; font-weight: bold; text-align: left; margin-top: 24pt; margin-bottom: 12pt; text-indent: 0; }
         .a4-page h3 { font-size: 12pt; font-weight: bold; font-style: italic; text-align: left; margin-top: 24pt; margin-bottom: 12pt; text-indent: 0; }
-        .a4-page .hanging-indent { padding-left: 1.27cm; text-indent: -1.27cm; margin-bottom: 12pt; text-align: left; }
+        
+        /* Sangria Francesa para Referências */
+        .a4-page .hanging-indent { 
+            padding-left: 1.27cm; 
+            text-indent: -1.27cm; 
+            margin-bottom: 12pt; 
+            text-align: left; 
+        }
 
-        /* Listas no Índice */
+        /* Sumário (TOC) Automático */
         .toc-list { list-style: none; padding: 0; margin-top: 24pt; }
         .toc-item { display: flex; align-items: flex-end; margin-bottom: 12pt; line-height: 1.2; text-indent: 0; }
         .toc-title { font-weight: normal; background: white; padding-right: 8px; }
@@ -97,9 +111,7 @@
         .italic-text { font-style: italic; }
         .uppercase-text { text-transform: uppercase; }
 
-        /* Transições Suaves */
-        .tab-transition { transition: all 0.3s ease-in-out; }
-
+        /* Prevenção de quebra de impressão */
         @media print {
             body * { visibility: hidden; }
             #print-area, #print-area * { visibility: visible; }
@@ -113,40 +125,40 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 font-sans h-screen overflow-hidden transition-colors duration-200 selection:bg-primary-500 selection:text-white">
 
-    <!-- TELA DE LOGIN -->
+    <!-- ECRÃ DE BOAS-VINDAS / LOGIN -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800">
         <div class="max-w-md w-full bg-white dark:bg-slate-850 rounded-3xl shadow-2xl p-8 text-center space-y-8 border border-slate-100 dark:border-slate-700/50">
-            <div class="bg-primary-50 dark:bg-primary-900/30 w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-2 transform rotate-3 shadow-sm">
+            <div class="bg-primary-50 dark:bg-primary-900/30 w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-2 transform rotate-3 shadow-sm border border-primary-100 dark:border-primary-800">
                 <i data-lucide="graduation-cap" class="text-primary-600 dark:text-primary-400 w-12 h-12 -rotate-3"></i>
             </div>
             <div>
                 <h1 class="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">MonografiaAI</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-                    O seu assistente de bolso para redação académica. Normas APA 7ª Edição aplicadas automaticamente.
+                    A sua plataforma inteligente para redação académica. Formatação automática em <strong class="text-primary-600 dark:text-primary-400">APA 7ª Edição</strong>.
                 </p>
             </div>
             <button id="btn-login" class="w-full flex items-center justify-center gap-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-primary-500/30">
-                <i data-lucide="sparkles" class="w-5 h-5"></i> Começar a Criar
+                <i data-lucide="sparkles" class="w-5 h-5"></i> Aceder ao Espaço de Trabalho
             </button>
         </div>
     </div>
 
-    <!-- TELA PRINCIPAL -->
+    <!-- ECRÃ PRINCIPAL -->
     <div id="app-screen" class="hidden-state flex flex-col md:flex-row h-screen overflow-hidden">
         
-        <!-- TOP BAR (Mobile Only) -->
+        <!-- HEADER MOBILE -->
         <header class="md:hidden flex items-center justify-between h-16 px-4 bg-white dark:bg-slate-850 border-b border-slate-200 dark:border-slate-800 shrink-0 z-40">
             <div class="flex items-center gap-2">
                 <i data-lucide="graduation-cap" class="text-primary-600 dark:text-primary-400 w-6 h-6"></i>
                 <span class="text-lg font-bold">MonografiaAI</span>
             </div>
-            <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 active:scale-95 transition">
                 <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
                 <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
             </button>
         </header>
 
-        <!-- SIDEBAR (Desktop Only) -->
+        <!-- SIDEBAR DESKTOP -->
         <aside class="hidden md:flex w-72 bg-white dark:bg-slate-850 border-r border-slate-200 dark:border-slate-800 flex-col hide-on-print transition-colors z-40">
             <div class="h-20 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 px-6">
                 <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg">
@@ -163,7 +175,7 @@
                     <i data-lucide="folder-clock" class="w-5 h-5"></i> O Meu Histórico
                 </button>
                 <button onclick="switchTab('settings')" id="nav-desktop-settings" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
-                    <i data-lucide="settings-2" class="w-5 h-5"></i> Configurações
+                    <i data-lucide="settings-2" class="w-5 h-5"></i> Configurações IA
                 </button>
             </nav>
 
@@ -174,21 +186,20 @@
                         <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
                         Tema Escuro
                     </span>
-                    <div class="w-10 h-5 bg-slate-300 dark:bg-primary-600 rounded-full relative shadow-inner">
+                    <div class="w-10 h-5 bg-slate-300 dark:bg-primary-600 rounded-full relative shadow-inner transition-colors">
                         <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform transform dark:translate-x-5 shadow-sm"></div>
                     </div>
                 </button>
             </div>
         </aside>
 
-        <!-- MAIN CONTENT AREA -->
-        <!-- pb-20 para compensar a barra inferior no mobile -->
+        <!-- ÁREA PRINCIPAL -->
         <main class="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-900 pb-[72px] md:pb-0 relative">
             
             <!-- ABA 1: GERADOR -->
             <div id="tab-generator" class="flex flex-col lg:flex-row h-full w-full">
                 
-                <!-- MOBILE TOGGLE (Apenas visível no mobile/tablet dentro do Gerador) -->
+                <!-- SELETOR MOBILE (Formulário / Documento) -->
                 <div class="lg:hidden flex p-3 bg-white dark:bg-slate-850 border-b border-slate-200 dark:border-slate-800 shrink-0 gap-2 z-10 shadow-sm">
                     <button onclick="setMobileGenView('form')" id="btn-view-form" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400">
                         1. Formulário
@@ -199,19 +210,19 @@
                 </div>
 
                 <!-- Painel Esquerdo: FORMULÁRIO -->
-                <div id="gen-form-panel" class="w-full lg:w-[420px] xl:w-[480px] h-full overflow-y-auto p-4 md:p-6 space-y-6 hide-on-print bg-white dark:bg-slate-850 border-r border-slate-200 dark:border-slate-800 shrink-0 custom-scrollbar block lg:block">
+                <div id="gen-form-panel" class="w-full lg:w-[420px] xl:w-[480px] h-full overflow-y-auto p-4 md:p-6 space-y-6 hide-on-print bg-white dark:bg-slate-850 border-r border-slate-200 dark:border-slate-800 shrink-0 custom-scrollbar block lg:block relative pb-10">
                     
                     <div id="error-message" class="hidden-state p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl flex items-start gap-3 text-sm border border-red-100 dark:border-red-900/30">
                         <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0 mt-0.5"></i>
                         <p id="error-text" class="leading-relaxed"></p>
                     </div>
 
-                    <!-- Logo Upload -->
+                    <!-- Upload Logotipo -->
                     <div>
                         <label class="cursor-pointer block border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-6 text-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors relative overflow-hidden group">
                             <div id="logo-preview-container" class="absolute inset-0 bg-white dark:bg-slate-800 flex items-center justify-center p-2 hidden-state">
                                 <img id="logo-preview-img" src="" class="max-h-full object-contain opacity-40 group-hover:opacity-10 transition-opacity">
-                                <span class="absolute text-primary-600 dark:text-primary-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 px-4 py-2 rounded-lg backdrop-blur-sm"><i data-lucide="image-plus"></i> Alterar Logotipo</span>
+                                <span class="absolute text-primary-600 dark:text-primary-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 bg-white/90 dark:bg-slate-800/90 px-4 py-2 rounded-lg backdrop-blur-sm"><i data-lucide="image-plus"></i> Alterar Logotipo</span>
                             </div>
                             <div class="flex flex-col items-center justify-center gap-3">
                                 <div class="p-3 bg-primary-50 dark:bg-primary-900/30 rounded-full">
@@ -219,7 +230,7 @@
                                 </div>
                                 <div>
                                     <span class="text-sm font-bold text-slate-700 dark:text-slate-200 block">Logotipo da Instituição</span>
-                                    <span class="text-xs text-slate-500">Toque para carregar (Opcional)</span>
+                                    <span class="text-xs text-slate-500">Formato PNG ou JPG</span>
                                 </div>
                             </div>
                             <input type="file" id="logo-upload" accept="image/*" class="hidden" />
@@ -229,11 +240,11 @@
                     <!-- Dados da Capa -->
                     <div class="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
                         <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-2">
-                            <i data-lucide="layout-template" class="w-5 h-5 text-primary-500"></i> Dados da Capa
+                            <i data-lucide="layout-template" class="w-5 h-5 text-primary-500"></i> Dados da Capa (UPDS)
                         </h3>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Universidade</label>
-                            <input type="text" id="in-university" class="w-full text-sm p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow shadow-sm" value="UNIVERSIDAD PRIVADA DOMINGO SAVIO">
+                            <input type="text" id="in-university" class="w-full text-sm p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-shadow shadow-sm" value="UNIVERSIDAD PRIVADA DOMINGO SAVIO">
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -247,7 +258,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Título do Trabalho</label>
-                            <textarea id="in-title" rows="2" class="w-full text-sm p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none resize-none font-bold shadow-sm">TÍTULO DA MONOGRAFIA</textarea>
+                            <textarea id="in-title" rows="2" class="w-full text-sm p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none resize-none font-bold shadow-sm text-center">TÍTULO DA MONOGRAFIA</textarea>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -275,10 +286,6 @@
                         </div>
                     </div>
 
-                    <!-- Texto Base IA -->
+                    <!-- Base de Dados / Texto -->
                     <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <i data-lucide="brain-circuit" class="w-5 h-5 text-purple-500"></i> Base da Pesquisa
-                            </h3>
-                            <label class="cursor-pointer text-sm font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 px-3 p
+                        <div class="flex items-center justify-bet
